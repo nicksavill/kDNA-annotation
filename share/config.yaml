@@ -9,7 +9,17 @@ meme directory:       Work_files/Meme
 alignments directory: Alignments
 genbank directory:    Genbank
 
-# check_minicirles.py: Check if minicircles are named and aligned correctly
+# clean_mini_and_maxicircles.py: Check if minicircles are named and aligned correctly
+minicircle fasta infile: minicircles.fasta
+maxicircle fasta infile: maxicircle.fasta
+minicircle clean fasta file: clean_minicircles.fasta
+maxicircle clean fasta file: clean_maxicircle.fasta
+clean log text file: cleaned_minicircles.log
+remove minicircles without CSB1: yes
+CSB regexes:
+    CSB1: GGGCGTG[TC]A
+    CSB2: TCCCGTGC
+    CSB3: GGGGTTG[AG]TGTA
 
 # mRNA_process.py: Process edited and unedited mRNA files
 unedited mRNA fasta infile:    unedited_mRNA.fasta
@@ -21,12 +31,10 @@ edited mRNA with t fasta file: edited_mRNA_small_t.fasta
 deletions mRNA text file:      deletions_mRNA.txt
 
 # align_maxi: Align maxicircle to edited mRNAs
-maxicircle fasta infile:    maxicircle.fasta
 maxicircle alignments file: maxi_alignments.txt
 minimum gRNA length: &ref1 24 
 
 # align_mini: Align minicircles to edited mRNAs
-minicircle fasta infile: minicircles.fasta
 minicircle alignments file: mini_alignments.txt
 
 # hq_gRNAs.py: Extract High quality gRNAs
@@ -42,8 +50,6 @@ high quality gRNAs filter:
     min_gRNA_length:    *ref2          # minimum gRNA length of HQ gRNAs
     max_mismatches:     1           # max no. of mismatches allowed in HQ gRNAs
     strand:             coding      # the strand most HQ gRNAs are encoded on ('coding', 'template', 'both')
-
-# meme
 
 # extract_motifs.py: Extract positions of inverted repeats and initiation sequence
 meme text file: meme.txt
