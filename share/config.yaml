@@ -1,0 +1,131 @@
+# Directories
+project:              /home/njs/Tb_Minicircles/Antat
+in directory:         In_files
+working directory:    Work_files
+annotation directory: Annotation
+meme directory:       Work_files/Meme
+
+# Annotation sub-directories
+alignments directory: Alignments
+genbank directory:    Genbank
+
+# check_minicirles.py: Check if minicircles are named and aligned correctly
+
+# mRNA_process.py: Process edited and unedited mRNA files
+unedited mRNA fasta infile:    unedited_mRNA.fasta
+edited mRNA fasta infile:      edited_mRNA.fasta
+unedited mRNA fasta file:      unedited_mRNA.fasta
+edited mRNA fasta file:        edited_mRNA.fasta
+edited mRNA with u fasta file: edited_mRNA_small_u.fasta
+edited mRNA with t fasta file: edited_mRNA_small_t.fasta
+deletions mRNA text file:      deletions_mRNA.txt
+
+# align_maxi: Align maxicircle to edited mRNAs
+maxicircle fasta infile:    maxicircle.fasta
+maxicircle alignments file: maxi_alignments.txt
+minimum gRNA length: &ref1 24 
+
+# align_mini: Align minicircles to edited mRNAs
+minicircle fasta infile: minicircles.fasta
+minicircle alignments file: mini_alignments.txt
+
+# hq_gRNAs.py: Extract High quality gRNAs
+high quality gRNAs pickle file: hq_gRNAs.pickle
+high quality gRNAs text file:   hq_gRNAs.txt
+high quality gRNAs fasta file:  hq_gRNAs.fasta
+upstream: 63
+downstream: 100
+expected gRNA length: &ref2 40
+high quality gRNAs filter:
+    anchor_seq:         (?=(\|+))   # watson-crick only for anchor
+    min_anchor_length:  8           # minimum anchor length of HQ gRNAs
+    min_gRNA_length:    *ref2          # minimum gRNA length of HQ gRNAs
+    max_mismatches:     1           # max no. of mismatches allowed in HQ gRNAs
+    strand:             coding      # the strand most HQ gRNAs are encoded on ('coding', 'template', 'both')
+
+# meme
+
+# extract_motifs.py: Extract positions of inverted repeats and initiation sequence
+meme text file: meme.txt
+motifs text file: motifs.txt
+motifs pickle file: motifs.pickle
+repeat length: 18
+initiation sequence length: 5
+forward repeat left trim: 7
+initiation sequence left trim:  2
+reverse repeat left trim: 9
+plot feature historgrams: yes
+
+# mO_scoring.py: Nucleotide bias scoring of gRNAs and 18bp repeats for each minicircle
+repeat biases text file: repeat_nt_biases.txt
+scores pickle file:      scores.pickle
+wiggle: 9 # some wiggle room in the search region for repeats
+expected number of cassettes: 4 # expected number of cassettes per minicircle. Used to get minimum score of gRNA peaks
+
+# identify_cassettes.py: Identify inverted repeats and cassettes
+cassettes pickle file: cassettes.pickle
+cassettes text file:   cassettes.txt
+plot cassette histogram: yes
+minicircles to plot: []   # which minicircle scorings to plot, number or string
+cassette labels and limits: 
+    I:   [100, 259]
+    II:  [260, 409]
+    III: [410, 469]
+    IV:  [470, 703]
+    V:   [653, 2000]
+cassettes to drop:
+    # - []
+    - [mO_097, 120]
+
+# identify_CSB_gRNAs.py: Identify CSB and all gRNAs
+gRNAs pickle file:          gRNAs.pickle
+gRNAs text file:            gRNAs.txt
+cassettes text file:        cassettes.txt
+features pickle file:       features.pickle.gz
+all gRNAs filter:
+    allow_orphans:      yes
+    min_anchor_length:  6
+    min_gRNA_length:    *ref1
+    anchor_seq:         (?=(\|+))  # watson-crick only for anchor
+    min_multi_length:   35         # minimum length of 2nd gRNA in a cassette 
+    max_mismatches:     3          # max no. of mismatches allowed in cassette gRNAs
+    mRNA_subset:        no         # only a subset of mRNAs have been aligned to
+    remove_low_quality: yes        # remove gRNAs with multiple low quality measures
+    trim_to_init:       yes        # trim 5' ends of gRNAs to initiation sequence if too long
+    false_positives:
+        # - []
+        - [mO_380, I]   # short with very long anchor
+        - [mO_228, I]   # too short, long anchor, 2 mm, anti-sense strand
+        - [mO_237, I]   # too many Ts
+        - [mO_230, IV]  # short, template, 2 mismatches
+CSB regexes:
+    CSB1: GGGCGTG[TC]A
+    CSB2: TCCCGTGC
+    CSB3: GGGGTTG[AG]TGTA
+have transcriptomics: yes
+
+# transcripts.py: Extract transcripts from sam file and assign to cassettes and orphans
+transcriptomics infile:  smallRNA_3-520_490_520_mapped_to_398_mOs_2020-01-15.sam.gz
+transcripts pickle file: transcrips.pickle.gz
+
+# find_transcript_p.py: Find probability a transcript starts in the initiation sequence under null model of no expression
+transcript position distribution pickle file: transcript_position_distribution.pickle
+transcript position fit range: [15, 70] # the range of positions to fit the normal distribution to transcript position
+initiation site range: [30, 32] # distance of initiation site from 3' end of forward repeat found from plot of transcripts.py
+
+# predict_transcript_end_pos.py
+
+# predict_expression.py: Determine expression status of cassettes and orphans
+expression pickle file:     expression.pickle
+expression text file:       expression.txt
+p: 0.0682 # set to false if this needs to be calculated
+end position percentile: 90
+
+# add_expression.py: Add expression data to all gRNAs and cassettes and identify genes
+features with expression pickle file: features_with_expression.pickle.gz
+expressed genes text file:            genes_with_expression.txt
+gRNAs with expression text file:      gRNAs_with_expression.txt
+cassettes with expression text file:  cassettes_with_expression.txt
+
+# annotate_minicircles.py: Final annotation
+output genbank: no
