@@ -1,3 +1,5 @@
+import pathlib
+
 from .common import *
 
 def get_motif_pos(seq, regex):
@@ -17,13 +19,16 @@ def realign_on_CSB1(minicircle):
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
     config = load_config(config_file)
-    in_dir, work_dir = get_directories(config)[:2]
+    in_dir, work_dir, _, meme_dir = get_directories(config)
 
     minicircle_file = f"{in_dir}/{config['minicircle fasta infile']}"
     maxicircle_file = f"{in_dir}/{config['maxicircle fasta infile']}"
+    clean_log_file  = f"{work_dir}/{config['clean log text file']}"
     minicircle_clean_file = f"{work_dir}/{config['minicircle clean fasta file']}"
     maxicircle_clean_file = f"{work_dir}/{config['maxicircle clean fasta file']}"
-    clean_log_file = f"{work_dir}/{config['clean log text file']}"
+
+    pathlib.Path(work_dir).mkdir(parents=True, exist_ok=True) 
+    pathlib.Path(meme_dir).mkdir(parents=True, exist_ok=True) 
 
 
     ########################################## PARAMETERS #########################################
@@ -112,8 +117,8 @@ def main(config_file='config.yaml'):
 
     if changed:
         print('############################ WARNING #################################')
-        print(f'Re-writing minicircle fasta file as {minicircle_clean_file}')
-        print('Changes have been made to the minicircle sequence fasta file.')
+        print(f'Re-writing minicircle fasta file as {minicircle_clean_file} and the ')
+        print(f'maxicircle fasta file as {maxicircle_clean_file}.')
         print('If small RNA transcripts have been aligned to the minicircle sequences.')
         print('this will have to be re-run with the cleaned minicircle sequences.')
         print('############################ WARNING #################################')
