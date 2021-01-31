@@ -1,5 +1,3 @@
-import pathlib
-
 from .common import load_config, get_directories, SeqIO
 
 def get_unprocessed_mRNAs(unedited_file, edited_file):
@@ -24,6 +22,20 @@ def get_unprocessed_mRNAs(unedited_file, edited_file):
         u_mRNA_name = mRNA_name.split('_')[0]
         unedited_seq = str(unedited[u_mRNA_name].seq).replace('u', 'T').replace('U', 'T')
 
+        # Check that the T-stripped edited and unedited sequences exactly match. If not abort
+        edited_seq_T_stripped = edited_seq.replace('T', '')
+        unedited_seq_T_stripped = unedited_seq.replace('T', '')
+        if edited_seq_T_stripped != unedited_seq_T_stripped:
+            print(f'T-stripped edited and unedited sequences of {mRNA_name} do not match:')
+            print(edited_seq_T_stripped)
+            print(unedited_seq_T_stripped)
+            for i, (n1, n2) in enumerate(zip(edited_seq_T_stripped, unedited_seq_T_stripped)):
+                if n1 != n2:
+                    print(f'The first mis-match ({n1, n2}) between the sequences occurs at position {i+1}')
+                    print('Correct the sequences. Exiting.')
+                    exit()
+            else:
+                print("The mis-match is at their 3' ends so should not be a problem.")
         # by comparing edited and unedited sequences we can work out where 
         # insertions and deletions occur
         e_pos, u_pos = 0, 0
@@ -75,7 +87,7 @@ def get_unprocessed_mRNAs(unedited_file, edited_file):
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
     config = load_config(config_file)
-    in_dir, work_dir, _, meme_dir = get_directories(config)
+    in_dir, work_dir = get_directories(config)[:2]
 
     unedited_in_file  = f"{in_dir}/{config['unedited mRNA fasta infile']}"
     edited_in_file    = f"{in_dir}/{config['edited mRNA fasta infile']}"
@@ -85,10 +97,7 @@ def main(config_file='config.yaml'):
     edited_t_out_file = f"{work_dir}/{config['edited mRNA with t fasta file']}"
     deletion_out_file = f"{work_dir}/{config['deletions mRNA text file']}"
 
-    pathlib.Path(work_dir).mkdir(parents=True, exist_ok=True) 
-    pathlib.Path(meme_dir).mkdir(parents=True, exist_ok=True) 
-
-
+    
     ####################################### PROCESS mRNA #########################################
     # read in unedited and edited mRNA sequences
     mRNAs = get_unprocessed_mRNAs(unedited_in_file, edited_in_file)
