@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from .common import *
 
-def find_p(transcripts, init_site_range, fit_range):
+def estimate_normal_curve(transcripts, init_site_range, fit_range):
     """ probability of a randomly selected transcript being in the initiation site
         under the null hypothesis that the cassette is not expressed.
         Or, more precisely, that transcript positions are normally distributed
@@ -27,17 +27,8 @@ def find_p(transcripts, init_site_range, fit_range):
     x = distribution.index[ss]
     y = np.log(distribution.values[ss])
     z = np.polyfit(x, y, 2)
-    print(f'polynomial = {z}')
 
-    # mean and standard dev of normal
-    sigma = np.sqrt(-1/(2*z[0]))
-    mu = -z[1]/(2*z[0])
-    print(f'mu = {mu}, sigma = {sigma}')
-
-    # probability a random transcript starts in the initiation site
-    p = norm.cdf(init_site_range[1]+1, mu, sigma)-norm.cdf(init_site_range[0], mu, sigma)
-
-    return p, distribution, x, y, z
+    return distribution, x, y, z
 
 
 def main(config_file='config.yaml'):
@@ -59,7 +50,18 @@ def main(config_file='config.yaml'):
 
 
     ######################################### DETERMINE p ##########################################
-    p, distribution, x, y, z = find_p(transcripts, init_site_range, fit_range)
+    distribution, x, y, z = estimate_normal_curve(transcripts, init_site_range, fit_range)
+
+    # mean and standard dev of the fitted normal curve
+    sigma = np.sqrt(-1/(2*z[0]))
+    mu = -z[1]/(2*z[0])
+    # probability a random transcript starts in the initiation site
+    p = norm.cdf(init_site_range[1]+1, mu, sigma)-norm.cdf(init_site_range[0], mu, sigma)
+
+    print(f'polynomial = {z}')
+    print(f'mu = {mu}, sigma = {sigma}')
+    print(f'probability that a transcript starts in the initiation site by random chance = {p}')
+
 
     # plot distribution of transcript relative positions to check for non-normal tails
     # change "transcript position fit range" in config file to adjust range of fit 
@@ -67,11 +69,10 @@ def main(config_file='config.yaml'):
     plt.bar(x, y, label='data')
     plt.plot(x, f(x), label='fit')
     plt.legend()
-    plt.xlabel('Transcript position relative to 18 bp repeat')
+    plt.xlabel("Transcript position relative to 3' end of forward repeat")
     plt.ylabel('log frequency')
     plt.show()
 
 
     ##################################### SAVE #####################################################
     pickle_save(distribution, transcript_distribution_file)
-    print(f'probability that a transcript starts in the initiation site by random chance = {p}')

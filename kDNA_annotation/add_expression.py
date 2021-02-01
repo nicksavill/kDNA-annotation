@@ -139,7 +139,7 @@ def get_expressed_genes(gRNAs, cassettes, mRNAs, minicircles, expression):
 
     def get_gene_alignment(gene):
         gene_mod = {}
-        if filter['mRNA_subset'] and not gene['circle_start'] is not pd.NA:
+        if gene['circle_start'] is pd.NA:
             return pd.Series(gene_mod)
 
         if gene['cassette_label'] == 'Orphan':
@@ -351,7 +351,7 @@ def identify_expressed_gRNA_families(gRNAs, mRNAs, init_seq_len):
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
     config = load_config(config_file)
-    work_dir, annotation_dir = get_directories(config)[1:2]
+    work_dir, annotation_dir = get_directories(config)[1:3]
 
     expression_pickle_file = f"{work_dir}/{config['expression pickle file']}"
     features_file          = f"{work_dir}/{config['features pickle file']}"
@@ -391,7 +391,7 @@ def main(config_file='config.yaml'):
     ##################################### SAVE ####################################################
     dataframe_out(genes, genes_text_file)
     dataframe_out(gRNAs, gRNAs_text_file)
-    dataframe_out(gRNAs, cassettes_text_file)
+    dataframe_out(cassettes, cassettes_text_file)
 
     # save for annotation and analysis
     gzip_pickle_save([minicircles, mRNAs, CSB1, CSB2, CSB3, cassettes, gRNAs, genes], features_with_exp_file)

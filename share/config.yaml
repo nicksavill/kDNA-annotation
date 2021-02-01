@@ -47,7 +47,7 @@ expected gRNA length: &ref2 40
 high quality gRNAs filter:
     anchor_seq:         (?=(\|+))   # watson-crick only for anchor
     min_anchor_length:  8           # minimum anchor length of HQ gRNAs
-    min_gRNA_length:    *ref2          # minimum gRNA length of HQ gRNAs
+    min_gRNA_length:    *ref2       # minimum gRNA length of HQ gRNAs
     max_mismatches:     1           # max no. of mismatches allowed in HQ gRNAs
 
 # extract_motifs.py: Extract positions of inverted repeats and initiation sequence
@@ -71,18 +71,18 @@ expected number of cassettes: 4 # expected number of cassettes per minicircle. U
 cassettes pickle file: cassettes.pickle
 cassettes text file:   cassettes.txt
 plot cassette histogram: yes
-minicircles to plot: []   # which minicircle scorings to plot, number or string
 cassette labels and limits: 
     I:   [100, 259]
     II:  [260, 409]
     III: [410, 469]
     IV:  [470, 703]
     V:   [653, 2000]
+minicircles to plot: [mO_097]   # which minicircle scorings to plot, number or string
 cassettes to drop:
     # - []
     - [mO_097, 120]
 
-# identify_CSB_gRNAs.py: Identify CSB and all gRNAs
+# identify_all_gRNAs.py: Identify CSB and all gRNAs
 gRNAs pickle file:          gRNAs.pickle
 gRNAs text file:            gRNAs.txt
 cassettes text file:        cassettes.txt
@@ -93,8 +93,7 @@ all gRNAs filter:
     min_gRNA_length:    *ref1
     anchor_seq:         (?=(\|+))  # watson-crick only for anchor
     min_multi_length:   35         # minimum length of 2nd gRNA in a cassette 
-    max_mismatches:     3          # max no. of mismatches allowed in cassette gRNAs
-    mRNA_subset:        no         # only a subset of mRNAs have been aligned to
+    max_mismatches:     3          # max no. of mismatches allowed in gRNAs
     remove_low_quality: yes        # remove gRNAs with multiple low quality measures
     trim_to_init:       yes        # trim 5' ends of gRNAs to initiation sequence if too long
     false_positives:
@@ -103,10 +102,6 @@ all gRNAs filter:
         - [mO_228, I]   # too short, long anchor, 2 mm, anti-sense strand
         - [mO_237, I]   # too many Ts
         - [mO_230, IV]  # short, template, 2 mismatches
-CSB regexes:
-    CSB1: GGGCGTG[TC]A
-    CSB2: TCCCGTGC
-    CSB3: GGGGTTG[AG]TGTA
 have transcriptomics: yes
 
 # transcripts.py: Extract transcripts from sam file and assign to cassettes and orphans
@@ -133,4 +128,5 @@ gRNAs with expression text file:      gRNAs_with_expression.txt
 cassettes with expression text file:  cassettes_with_expression.txt
 
 # annotate_minicircles.py: Final annotation
-output genbank: no
+genbank text file: annotated_mOs.gbk
+output genbank: yes

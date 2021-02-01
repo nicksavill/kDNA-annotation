@@ -5,7 +5,7 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 from .common import *
 
-def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes):
+def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len):
     cstrand = {'coding':1, 'template':-1}
     for mO_name, minicircle_record in minicircles.items():
         # minicircle_record.description = 'Trypanosoma brucei brucei strain AnTat1.1 90-13'
@@ -31,14 +31,15 @@ def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes):
             if sRNA['strand'] == 'coding':
                 return sRNA['circle_start']
             else:
-                return sRNA['circle_end']-5
+                return sRNA['circle_end']-init_seq_len
 
         if genes is not None:
-            init_seq = genes.query('cassette_label != "Orphan"').dropna(subset=['init_seq']).copy()
+            init_seq = genes.query('cassette_label != "Orphan"').dropna(subset=['circle_start']).copy()
             init_seq['start'] = init_seq.apply(get_motif_start, axis=1)
-            # init_seq['start'] = init_seq['start'].astype(int)
             init_seq = init_seq [['mO_name', 'start', 'strand']]
             init_seq = init_seq.drop_duplicates()
+        else:
+            init_seq = None
 
         features  = [SeqFeature(FeatureLocation(CSB1[mO_name]['start'], CSB1[mO_name]['end']), type='CSB1')]
         if mO_name in CSB2:
@@ -57,14 +58,14 @@ def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes):
             for _, i in cassettes.query('mO_name == @mO_name').iterrows()]
 
         if genes is not None:
-            features += [SeqFeature(FeatureLocation(int(i['start']), int(i['start']+5), strand=cstrand[i['strand']]),
-                type='motif',
+            features += [SeqFeature(FeatureLocation(int(i['start']), int(i['start']+init_seq_len), strand=cstrand[i['strand']]),
+                type='initiation',
                 # qualifiers={'init_seq':i['init_seq']}
                 )
                 for _, i in init_seq.query('mO_name == @mO_name').iterrows()]
 
             features += [SeqFeature(FeatureLocation(int(i['circle_start']), int(i['circle_end']), strand=cstrand[i['strand']]),
-                type='small_RNA',
+                type='gene',
                 qualifiers=OrderedDict([
                     ('mRNA_',             f"5'-{i['mRNA_seq']}-3'"),
                     ('align',             f"   {i['pairing']}   "),
@@ -72,7 +73,7 @@ def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes):
                 ])) for _, i in genes.query('mO_name == @mO_name and pairing == pairing').iterrows()]
 
         features += [SeqFeature(FeatureLocation(int(i['circle_start']), int(i['circle_end']), strand=cstrand[i['strand']]),
-            type='aligned_gRNA',
+            type='gRNA',
             qualifiers=OrderedDict([
                 ('name',              i['name']),
                 # ('product', f"{i['mRNA_name']}"),
@@ -254,13 +255,17 @@ def main(config_file='config.yaml'):
         features_file = f"{work_dir}/{config['features with expression pickle file']}"
     else:
         features_file = f"{work_dir}/{config['features pickle file']}"
-        
+    genbank_file = config['genbank text file']
+
     alignments_dir = f"{annotation_dir}/{config['alignments directory']}"
     genbank_dir = f"{annotation_dir}/{config['genbank directory']}"
 
     pathlib.Path(alignments_dir).mkdir(parents=True, exist_ok=True) 
     pathlib.Path(genbank_dir).mkdir(parents=True, exist_ok=True) 
 
+
+    ########################################### PARAMETERS #########################################
+    init_seq_len = config['initiation sequence length']
 
     ############################################### LOAD ###########################################
     if config['have transcriptomics']:
@@ -271,9 +276,9 @@ def main(config_file='config.yaml'):
 
     ##################### SAVE GENBANK FILE AND FULL ALIGNMENTS TO #################################
     if config['output genbank']:
-        annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes)
+        annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len)
         minicircle_list = [v for _, v in sorted(minicircles.items())]
-        SeqIO.write(minicircle_list, f'{genbank_dir}/annotated_mOs.gbk', 'genbank')
+        SeqIO.write(minicircle_list, f'{genbank_dir}/{genbank_file}', 'genbank')
 
     output_edits(gRNAs, mRNAs, config, alignments_dir)
 

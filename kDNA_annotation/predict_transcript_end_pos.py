@@ -4,7 +4,6 @@ from .common import *
 
 def predict_end_position(transcripts, rel_end_statistics):
     """
-        
     """
 
     def init_and_end(transcripts, rel_end_statistics):
