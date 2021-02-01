@@ -5,6 +5,35 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 from .common import *
 
+"""
+Alignment files key:
+Lines 1-4:  mRNA position (thousands, hundreds, tens, units) starting from 1
+Line 5:     "A"s represent positions on the mRNA at which extender gRNAs anchour
+            "I"s represent positions on the mRNA at which initiator gRNAs anchour
+            "U"s represent positions on the mRNA at which extender gRNAs anchour but no 3' gRNA exists which edits the anchour 
+Line 6:     "M"s represent positions of U-insertions not covered by gRNAs
+Line 7:     "E"s represent positions on the mRNA covered by expressed gRNA editing regions
+Line 8:     number of deletions to the right of the nucleotide below
+Line 9:     edited mRNA sequence 5' to 3' (lowercase "u"s represent insertions)
+Line 10:    protein sequence
+
+For each gRNA:
+Line 1:     name (mO_name(cassette position)_mRNA(start-end of alignment on mRNA)) 
+            anchour represented by 
+                "-" for extender gRNA
+                ":" for initiator gRNA
+                '.' for unanchoured gRNA
+                '*' for undetermined extender or initiator
+Line 2:     base-pairing
+                "|":    Watson-Crick basepair
+                ":":    GU basepair
+                ".":    mismatch basepair
+                "-":    gap (only in gapped dataset)
+Line 3:     gRNA sequence 3' to 5'
+Line 4:     extent of small RNA sequence
+
+"""
+
 def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len):
     cstrand = {'coding':1, 'template':-1}
     for mO_name, minicircle_record in minicircles.items():
