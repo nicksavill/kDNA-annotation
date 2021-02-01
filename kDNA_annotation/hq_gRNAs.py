@@ -31,8 +31,6 @@ def extract_alignment(alignment, gRNAs, mRNAs, circle_name, minicircles, filter)
 
     dd = {'c':'coding', 't':'template'}
     strand = dd[strand]
-    # if filter['strand'] != 'both' and filter['strand'] != strand:
-    #     return
 
     # get the pairing for this alignment
     mRNA_seq = mRNA_align_o.replace('T', 'U')
@@ -141,6 +139,12 @@ def get_hq_gRNAs(mini_align_file, minicircles, mRNAs, filter):
     # filter out all duplicate alignments again (this prevents double counting gRNAs of multiple mRNA versions)
     gRNAs = gRNAs.drop_duplicates(subset=['mO_name', 'strand', 'pairing'])
     print(f'after drop duplicates = {len(gRNAs)}\n')
+
+    print('Number of HQ gRNAs on each strand')
+    print(gRNAs['strand'].value_counts())
+    major_strand = gRNAs['strand'].mode().loc[0]
+    gRNAs = gRNAs[gRNAs['strand'] == major_strand]
+    print(f'Only using gRNAs on the {major_strand} strand\n')
 
     print(f'Total high quality gRNAs found = {len(gRNAs)}')
     return gRNAs

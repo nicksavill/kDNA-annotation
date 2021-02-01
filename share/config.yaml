@@ -49,7 +49,6 @@ high quality gRNAs filter:
     min_anchor_length:  8           # minimum anchor length of HQ gRNAs
     min_gRNA_length:    *ref2          # minimum gRNA length of HQ gRNAs
     max_mismatches:     1           # max no. of mismatches allowed in HQ gRNAs
-    strand:             coding      # the strand most HQ gRNAs are encoded on ('coding', 'template', 'both')
 
 # extract_motifs.py: Extract positions of inverted repeats and initiation sequence
 meme text file: meme.txt
