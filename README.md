@@ -79,7 +79,7 @@ Make sure to comment out `clean_mini_and_maxicircles()` and uncomment `mRNA_proc
 
 The function `mRNA_process.py` will attempt to clean the inputted edited and unedited sequences given as fasta files in  `in directory` defined in the config file. It is important that the T-stripped edited and unedited sequences are identical otherwise it is usually impossible to reconstruct the insertions and deletions correctly. If this problem occurs, the offending sequences should be corrected. If the mis-match between the sequences occurs in a non-edited region this won't be a problem for gRNA identification. 
 
-Several fasta files are outputted in `working directory`, including positions where deletions occur (`deletions mRNA text file`) and positions where insertions occur which are recorded as a lowercase "u" (`edited_mRNA_small_u.fasta`) or "y" (`edited_mRNA_small_t.fasta`).
+Several fasta files are outputted in `working directory`, including positions where deletions occur (`deletions mRNA text file`) and positions where insertions occur which are recorded as a lowercase "u" (`edited_mRNA_small_u.fasta`) or "t" (`edited_mRNA_small_t.fasta`).
 
 #### Step 5
 
