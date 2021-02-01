@@ -205,7 +205,7 @@ def main(config_file='config.yaml'):
     cassettes = drop_invalid_cassettes(cassettes, cassettes_to_drop)
 
 
-    ################## ASSIGN CASSETTE POSITION ACCORIDING TO THE USER-DEFINED CAS_LABELS ###############
+    ################## ASSIGN CASSETTE POSITION ACCORDING TO THE USER-DEFINED CAS_LABELS ###############
     # get each cassette's position on the minicircle given by the used-defined dictionary cas_labels
     print(f'In config.yaml "cassette labels and limits" is set to')
     print(cas_labels)

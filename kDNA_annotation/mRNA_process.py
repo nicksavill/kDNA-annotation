@@ -3,7 +3,7 @@ from .common import load_config, get_directories, SeqIO
 def get_unprocessed_mRNAs(unedited_file, edited_file):
     """ 
         Process fasta files of edited and unedited mRNA sequences and output
-        files for minicircle annotataion
+        files for minicircle annotation
 
         The non-edited 5' and 3' ends of the edited and unedited sequences must
         match otherwise the processing gets stuck    

@@ -193,7 +193,6 @@ def main(config_file='config.yaml'):
 
     # output sequences of genes and their flanks for motif identification with meme
     # OR use http://meme-suite.org/
-    # meme Antat/Work_files/hq_gRNAs.fasta -dna -oc Antat/Work_files/Meme -mod zoops -nmotifs 3 -minw 5 -maxw 30 -objfun classic -markov_order 0 -p 4
 
     with open(hq_gRNAs_fasta_file, 'w') as f:
         for _, gRNA in hq_gRNAs.iterrows():

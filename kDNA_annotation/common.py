@@ -125,7 +125,7 @@ def get_directories(config):
 
 def identify_anchors(gRNAs, mRNAs, filter):
     """
-    For each gRNA we idenitfy its maximum anchor as the longest, 5’-most 
+    For each gRNA we identify its maximum anchor as the longest, 5’-most 
     stretch of Watson-Crick basepairs. An anchor is considered an extender 
     if there are any insertions or deletions in its first 6 basepairs, an 
     initiator if there are no insertions or deletions in its first 6 basepairs.
@@ -207,7 +207,7 @@ def identify_anchors(gRNAs, mRNAs, filter):
                         break
                 a_value = 4
             elif a_type == 'initiator':
-                # Initiator anchor of at least miniumum length
+                # Initiator anchor of at least minimum length
                 # trim maximum anchor to first 'u' if it exists
                 match = re.search(r'\d', mRNA['deletions'][max_a_slice][::-1])
                 # search for deletions in anchor (this only seems to happen in A6_v1)
@@ -252,7 +252,7 @@ def identify_anchors(gRNAs, mRNAs, filter):
 
 def orphan_position(gRNA, cassettes):
     mO_name = gRNA['mO_name']
-    # extract cassettes on the minicircle encodning this gRNA
+    # extract cassettes on the minicircle encoding this gRNA
     cassettes = cassettes[cassettes['mO_name'] == mO_name]
     # No cassettes on this gRNA (eg maxicircle)
     if len(cassettes) == 0:
@@ -331,6 +331,8 @@ def collapse(gRNAs, minicircles, mRNAs, post_cassette_label=True):
         max_circle_end   = gRNAs['circle_end'].max()
         if post_cassette_label:
             min_rel_start = gRNAs['rel_start'].min()
+        else:
+             min_rel_start = None
         if strand == 'coding':
             gRNA_seq = str(minicircles[circle_name].seq[min_circle_start:max_circle_end]).replace('T', 'U')[::-1]
         else:

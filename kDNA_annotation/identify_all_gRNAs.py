@@ -385,7 +385,7 @@ def main(config_file='config.yaml'):
     mRNAs = get_mRNAs(edited_mRNA_t_file, deletion_mRNA_file)
     cassettes = pickle_load(cassettes_pickle_file)
     hq_gRNAs = pickle_load(hq_gRNAs_pickle_file)
-    # load motif positions on each miniricle
+    # load motif positions on each minicircle
     motif_positions = pickle_load(motifs_pickle_file)[0]
 
 
@@ -393,7 +393,7 @@ def main(config_file='config.yaml'):
     # parameters for gRNA selection
     filter = config['all gRNAs filter']
     CSB_regexes = config['CSB regexes']
-    # the position of the initiaion site relative to the 18bp repeat 
+    # the position of the initiation site relative to the 18bp repeat 
     init_seq_len = config['initiation sequence length']
 
     # The region in which to search for gRNAs relative to the 5' end of the forward repeat

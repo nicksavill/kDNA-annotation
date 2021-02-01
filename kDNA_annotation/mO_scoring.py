@@ -54,7 +54,7 @@ def get_gRNA_peaks(mO_gRNA_scores, num_cassettes, up):
     gRNA_peaks = {'mO_name':[], 'score':[], 'position':[]}
     # get all peak scores for each 
     for _, mO in mO_gRNA_scores.iterrows():
-        # identify the position and value of all peaks along a minicirle
+        # identify the position and value of all peaks along a minicircle
         s = mO['smoothed']
         ds = mO['smoothed_gradient']
         x = np.arange(len(s))+up

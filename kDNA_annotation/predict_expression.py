@@ -4,7 +4,7 @@ from scipy.stats import binom
 from .common import *
 
 def predict_expression(transcripts, init_site_range, p):
-    """ Probability that at least the number of observed transcripts in the initiation stte 
+    """ Probability that at least the number of observed transcripts in the initiation site 
         is due to random chance assuming the cassette is not expressed
     """
 
@@ -59,7 +59,7 @@ def predict_expression(transcripts, init_site_range, p):
 def expression(transcripts, init_site_range, init_seq_len, end_pos_percentile, p):
     def init_and_end(transcripts):
         # find the common position, the init_seq_len-nt sequence at that position and the number of transcripts at that position
-        # find the intiation site position, the init_seq_len-nt sequence at that position and the number of transcripts at that position
+        # find the initiation site position, the init_seq_len-nt sequence at that position and the number of transcripts at that position
         # predict the end of the sequenced gRNA by returning the end_pos_percentile 
         strand = transcripts.name[2]
         init = {'rel_start':0, 'common_start':0, 'init_seq':pd.NA, 'common_seq':pd.NA, 'transcripts_init_pos':0, 'transcripts_common_pos':0, 'rel_end':0}
@@ -155,7 +155,7 @@ def main(config_file='config.yaml'):
 
 
     ##################################### SAVE ####################################################
-    # output all casssettes+strands with transcripts
+    # output all cassettes+strands with transcripts
     # cassettes without any transcripts will not be in this file
     pickle_save(genes, expression_pickle_file)
     dataframe_out(genes, expression_text_file)

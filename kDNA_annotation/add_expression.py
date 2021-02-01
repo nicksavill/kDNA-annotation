@@ -336,12 +336,6 @@ def identify_expressed_gRNA_families(gRNAs, mRNAs, init_seq_len):
                 gRNA_families['family_id'].append(f'{mRNA_name}-{gRNA["cassette_label"]}-{gRNA["mRNA_end"]}')
                 family_no += 1
 
-    # maxicircle
-    # index.append(0)
-    # gRNA_families['family_no'].append(0)
-    # gRNA_families['family_end'].append(gRNAs.loc[0]['mRNA_end'])
-    # gRNA_families['family_id'].append(f'MURF2-Maxi-{gRNAs.loc[0]["mRNA_end"]}')
-
     gRNAs = gRNAs.drop(['tmp'], axis=1)
     gRNAs = gRNAs.join(pd.DataFrame(gRNA_families, index=index))
     gRNAs['family_no'] = gRNAs['family_no'].astype('Int64')
