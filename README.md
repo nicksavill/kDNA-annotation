@@ -53,7 +53,7 @@ Edit the `project` parameter in `config.yaml` to the full path name of the proje
 
 Clean the minicircle and maxicircle fasta files with `clean_mini_and_maxicircles()`.
 
-Run `clean_mini_and_maxicircles()` in `pipeline.py` by uncommenting the call to `clean_mini_and_maxicircles()` and commenting out calls to all the other functions.
+Run `clean_mini_and_maxicircles()` in `pipeline.py` by un-commenting the call to `clean_mini_and_maxicircles()` and commenting out calls to all the other functions.
 
 For kDNA annotation to work correctly all minicircles should be unique, aligned on conserved sequence block 1 (CSB-1) and have CSB-3 about 100nt downstream from CSB-1. Minicircles should also have the standard name "mO_XXX" where XXX runs from 001 upwards. 
 
@@ -61,7 +61,7 @@ The known CSB-1, 2 and 3 sequences as regular expressions are given in the confi
 
 If there are no matches for CSB-1 in a minicircle's sequence this could because the minicircle has not been assembled completely, the regular expression is wrong or that a minor variant of the CSB-1 sequence exists. The program will output possible new variants that it finds at the start the minicircle sequences and then terminate. These variants can be added to the CSB-1 regular expression in the config file. On the other hand, if you want to automatically remove any minicircles without CSB-1 then set `remove minicircles without CSB1` in `config.yaml` to yes.
 
-Minicircles coataining CSB-1 but not aligned on it will be automatically re-aligned and a warning issued.
+Minicircles containing CSB-1 but not aligned on it will be automatically re-aligned and a warning issued.
 
 If CSB-3 does not exist in the correct position relative to CSB-1 a warning is given and the program terminates.
 
@@ -83,14 +83,14 @@ Several fasta files are outputted in `working directory`, including positions wh
 
 #### Step 5
 
-Align the maxicircle (`maxi_align`) and all the minicircles (`mini_align`) to all edited mRNA sequences. This code is written in parellelised C for speed. Both sense and anti-sense strands of the circles are aligned. 
+Align the maxicircle (`maxi_align`) and all the minicircles (`mini_align`) to all edited mRNA sequences. This code is written in parallelised C for speed. Both sense and anti-sense strands of the circles are aligned. 
 
 The source code for these binaries are in the `src` directory of the package. If the source code is changed the binaries need re-compiling with the commands
 
     gcc -O3 -o ../kDNA_annotation/align_maxi align_maxi.c -fopenmp -lyaml
     gcc -O3 -o ../kDNA_annotation/align_mini align_mini.c -fopenmp -lyaml
 
-These programs find all alignments at least as long as `minimum gRNA length` (defined in the config file). As well as finding all gRNAs, these programs also produce many false positives, duplicates and overlapping alignments. In addition, no checks are made for an anhor, nor whether an alignment contains insertions or deletions in the mRNA. These checks are all done at a later step. These programs output to two files `maxi_alignments.txt` and `mini_alignments.txt`. 
+These programs find all alignments at least as long as `minimum gRNA length` (defined in the config file). As well as finding all gRNAs, these programs also produce many false positives, duplicates and overlapping alignments. In addition, no checks are made for an anchor, nor whether an alignment contains insertions or deletions in the mRNA. These checks are all done at a later step. These programs output to two files `maxi_alignments.txt` and `mini_alignments.txt`. 
 
 #### Step 6
 
@@ -104,7 +104,7 @@ On running the function `hq_gRNAs()`, the alignments from Step 5 will be loaded 
 
 If no, or very few, high quality gRNAs are found then the filtering parameters in the config file should be weakened and  `hq_gRNAs()` re-run.
 
-The function outputs a fasta file of the HQ gRNAs plus flanking sequences upstream and downstream of the gRNA. These sequences are used in Step 7 to identify common motifs, such as the inverted repeats and gRNA initiation sequences. The number of nucleoitdes upstream and downstream from the 5' end of each HQ gRNA are given by the parameters `upstream` and `downstream` in the config file. If no inverted repeat motifs are found in Step 7 these values will need to be increased.
+The function outputs a fasta file of the HQ gRNAs plus flanking sequences upstream and downstream of the gRNA. These sequences are used in Step 7 to identify common motifs, such as the inverted repeats and gRNA initiation sequences. The number of nucleotides upstream and downstream from the 5' end of each HQ gRNA are given by the parameters `upstream` and `downstream` in the config file. If no inverted repeat motifs are found in Step 7 these values will need to be increased.
 
 #### Step 7
 
@@ -112,7 +112,7 @@ Search for inverted repeats and the initiation sequence using `meme`.
 
 If Meme is installed then it can be run from `pipeline.py` directly. This will search for the common motifs and save the results in the directory `Work_files/Meme`. 
 
-If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a miniumum width of 5. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
+If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a minimum width of 5. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
 
 
 #### Step 8
@@ -123,13 +123,13 @@ With a web-browser open the page `meme.html` either in `Work_files/Meme` or on t
 
 Meme will likely find motifs that are too long. You need to tell the pipeline how long the motifs should be with the parameters `repeat length` and `initiation sequence length` in the config file. You also need to tell the pipeline how many nucleotides to trim off the lefthandside of each of Meme's motifs with the parameters `forward repeat left trim`, `initiation sequence left trim` and `reverse repeat left trim`.
 
-Once you've set these parameters run `extract_motifs()`. This will produce histograms of the positions of the forward repeat, the initiation sequence and the reverse repeat in the HQ gRNA sequences saved in Step 6 (top row of histograms). It will also plot histograms of the distances from the forward repeat to the initiation sequence, the initiation sequence to the HQ gRNA and the forward repeat to the HQ gRNA. These should be used to make sure the positions of the motifs look okay. The histogram plot can be turned off by setting `plot feature historgrams` to `no`.
+Once you've set these parameters run `extract_motifs()`. This will produce histograms of the positions of the forward repeat, the initiation sequence and the reverse repeat in the HQ gRNA sequences saved in Step 6 (top row of histograms). It will also plot histograms of the distances from the forward repeat to the initiation sequence, the initiation sequence to the HQ gRNA and the forward repeat to the HQ gRNA. These should be used to make sure the positions of the motifs look okay. The histogram plot can be turned off by setting `plot feature histograms` to `no`.
 
 The function `extract_motifs()` outputs two files: `motifs text file` which contains the regular expressions of the motifs and the nucleotide frequencies for each position in each motif; and `motifs pickle file` which is used in Step 9.
 
 #### Step 9
 
-Run `mO_scoring()` to create scoring vectors for inverted repeats and gRNAs (canonical and non-canonical) for each minicircle by using the nucleoide frequencies (also called biases) of these features from HQ gRNAs. 
+Run `mO_scoring()` to create scoring vectors for inverted repeats and gRNAs (canonical and non-canonical) for each minicircle by using the nucleotide frequencies (also called biases) of these features from HQ gRNAs. 
 
 The function needs to know the `expected number of cassettes` per minicircle. This is set in the config file. If not known, the expected number of cassettes can be guessed from the histogram of 5' positions of high quality gRNAs produced by `hq_gRNAs()`.
 
@@ -139,7 +139,7 @@ This function outputs `scores pickle file` for cassette identification in Step 1
 
 Identify cassettes and label them with `identify_cassettes()`.
 
-Cassettes are automatically identifed using the scoring vectors from Step 9. The difficult part is assigning cassette labels to each cassette because the positions of cassettes can be quite variable between minicircles.
+Cassettes are automatically identified using the scoring vectors from Step 9. The difficult part is assigning cassette labels to each cassette because the positions of cassettes can be quite variable between minicircles.
 
 The function plots a histogram of the 5' ends of the forward repeats. The aim is to assign each cassette a label (e.g., I, II, III, etc) based on its position on it's minicircle. The config file has a dictionary parameter `cassette labels and limits` that requires the user to define a label and a closed set of positions on the minicircle. For example,
 
@@ -154,9 +154,9 @@ This says that cassettes whose 5' ends start between positions 100 and 259 inclu
 
 If the function cannot assign a label to a cassette based on this dictionary it will output a warning and list all the cassettes on any offending minicircles. It is up to the user to change the dictionary and re-run the function until all cassettes can be assigned a label.
 
-Sometimes it might be impossible to resolve all conflicts. This is usually because a cassette has been identified which is actually a false positive. In these cases the scoring vectors can be plotted for offending minicircles to help identify these false positve cassettes. List any such minicircles in the parameter `minicircles to plot`. For example, to plot the scoring vectors for "mO_097" do `minicircles to plot: [mO_097]` and re-run the function. 
+Sometimes it might be impossible to resolve all conflicts. This is usually because a cassette has been identified which is actually a false positive. In these cases the scoring vectors can be plotted for offending minicircles to help identify these false positive cassettes. List any such minicircles in the parameter `minicircles to plot`. For example, to plot the scoring vectors for "mO_097" do `minicircles to plot: [mO_097]` and re-run the function. 
 
-The scoring plot shows the scores for the forward repeat (black) and the reverse repeat (red). Cassettes occur where these scores exceed the thresholds given as horizontal dashed lines of the same colour. A cassette is predicted to occur when a pair of black and red vertical lines appear together seperated by roughly 100nt. The gRNA score is shown as a smooth blue line and gRNAs are predicted where peaks occur above the gRNA threshold shown as a dotted blue horizontal line. Above the scores are horizontal orange lines indicating the predicted positions of the cassettes, and blue crosses indicate the 5' ends of predicted gRNAs. A false positive cassette will have a pair of vertical black and red lines but a gRNA peak below the threshold. False positive cassettes can be manually removed by including their minicircle name and position in the the config file parameter `cassettes to drop` like so:
+The scoring plot shows the scores for the forward repeat (black) and the reverse repeat (red). Cassettes occur where these scores exceed the thresholds given as horizontal dashed lines of the same colour. A cassette is predicted to occur when a pair of black and red vertical lines appear together separated by roughly 100nt. The gRNA score is shown as a smooth blue line and gRNAs are predicted where peaks occur above the gRNA threshold shown as a dotted blue horizontal line. Above the scores are horizontal orange lines indicating the predicted positions of the cassettes, and blue crosses indicate the 5' ends of predicted gRNAs. A false positive cassette will have a pair of vertical black and red lines but a gRNA peak below the threshold. False positive cassettes can be manually removed by including their minicircle name and position in the the config file parameter `cassettes to drop` like so:
 
     cassettes to drop:
         - [mO_097, 120]
@@ -171,7 +171,7 @@ Sometimes obvious false positive gRNAs come to light later that haven't been fil
 
 If transcriptomics is available for identifying expression status and initiation sequences then `have transcriptomics` should be set to "yes". Go to Step 12.
 
-If transcriptomics is not available then the position of the putative initiation site, relative to the 3' end of the forward repeat, is the modal distance (calculated from the HQ gRNAs) between the forward repeat and the initiation sequence motifs as found by Meme in Steps 7 and 8. Anchors are identified and gRNAs are assigned to gRNA families. Human readable text files of all cassettes and canonical gRNAs are ouput to the `annotation directory` in files `cassettes text file` and `gRNAs text file` respectively. Go to Step 17.
+If transcriptomics is not available then the position of the putative initiation site, relative to the 3' end of the forward repeat, is the modal distance (calculated from the HQ gRNAs) between the forward repeat and the initiation sequence motifs as found by Meme in Steps 7 and 8. Anchors are identified and gRNAs are assigned to gRNA families. Human readable text files of all cassettes and canonical gRNAs are output to the `annotation directory` in files `cassettes text file` and `gRNAs text file` respectively. Go to Step 17.
 
 #### Step 12
 
@@ -185,7 +185,7 @@ A histogram of the position of the 5' ends of the templated sequences of the tra
 
 Find the probability, _p_, of a randomly selected transcript being in the initiation site under the null hypothesis that the cassette is not expressed by running `find_transcript_p()`. 
 
-This function requires `initiation site range` from Step 12. The distribution of the position of the 5' ends of the templated sequences of the transcripts relative to the 3' end of the forward repeat is plotted on a log scale. The fit of a normal distribution curve is shown as a blue line. The transcripts within the initiation site are not included in thie distribution. This data for this histogram is saved for later use in the config file parameter `transcript position distribution pickle file`.
+This function requires `initiation site range` from Step 12. The distribution of the position of the 5' ends of the templated sequences of the transcripts relative to the 3' end of the forward repeat is plotted on a log scale. The fit of a normal distribution curve is shown as a blue line. The transcripts within the initiation site are not included in this distribution. This data for this histogram is saved for later use in the config file parameter `transcript position distribution pickle file`.
 
 The aim is to get a good fit of a normal distribution curve to the empirical distribution in order to calculate _p_.  The parameter in the config file `transcript position fit range` should be adjusted to trim the tails of the empirical distribution in order to obtain a good fit. 
 
@@ -195,7 +195,7 @@ The function outputs the polynomial coefficients of the fit, the estimated mean 
 
 Find the statistic with the minimum variance to predict the end position of transcribed gRNA genes by running `predict_transcript_end_pos()`.
 
-The transcripts are used to predict the transcribed end position of gRNA genes. As a cassette's aligned transcripts end at different positions on the minicircle we need a statistic that best represents the transcribed end of the casssette's gRNA gene.  This function outputs histograms of various statistics of the distance between the 3' end of gRNAs found by alignment and the 3' ends of the aligned transcripts. The statistic with the minimum variance is recommended by the function. The config file parameter `end position percentile` should be set to this value.
+The transcripts are used to predict the transcribed end position of gRNA genes. As a cassette's aligned transcripts end at different positions on the minicircle we need a statistic that best represents the transcribed end of the cassette's gRNA gene.  This function outputs histograms of various statistics of the distance between the 3' end of gRNAs found by alignment and the 3' ends of the aligned transcripts. The statistic with the minimum variance is recommended by the function. The config file parameter `end position percentile` should be set to this value.
 
 #### Step 15
 
@@ -213,9 +213,9 @@ The expression information found in Step 15 is added to the information on casse
 
 Canonical and non-canonical gRNA genes in expressed cassettes are identified using the predicted end positions found in Step 14. 
 
-Human readable text files of all cassettes, canonical gRNAs and genes are ouput to the `annotation directory` in files `cassettes text file`, `gRNAs text file` and `expressed genes text file` respectively. 
+Human readable text files of all cassettes, canonical gRNAs and genes are output to the `annotation directory` in files `cassettes text file`, `gRNAs text file` and `expressed genes text file` respectively. 
 
-The pickle file `features_with_expression.pickle.gz` us output with all features and inclusing minicircle and mRNA sequences for annotation output and analysis.
+The pickle file `features_with_expression.pickle.gz` us output with all features and including minicircle and mRNA sequences for annotation output and analysis.
 
 #### Step 17
 
