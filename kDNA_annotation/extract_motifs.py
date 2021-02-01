@@ -20,7 +20,7 @@ def main(config_file='config.yaml'):
     down = config['downstream']
     repeat_len = config['repeat length']
     init_seq_len = config['initiation sequence length']
-    plot_features = config['plot feature historgrams']
+    plot_features = config['plot feature histograms']
 
     feature_names = ['forward repeat', 'init sequence', 'reverse repeat']
 
@@ -89,7 +89,7 @@ def main(config_file='config.yaml'):
                     state = 3
 
             elif state == 3:
-                # searching for nt frequences
+                # searching for nt frequencies
                 match = nt_freq_regex.search(line)
                 if match:
                     state = 4

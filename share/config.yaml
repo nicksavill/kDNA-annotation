@@ -59,7 +59,7 @@ initiation sequence length: 5
 forward repeat left trim: 7
 initiation sequence left trim:  2
 reverse repeat left trim: 9
-plot feature historgrams: yes
+plot feature histograms: yes
 
 # mO_scoring.py: Nucleotide bias scoring of gRNAs and 18bp repeats for each minicircle
 repeat biases text file: repeat_nt_biases.txt
@@ -77,7 +77,7 @@ cassette labels and limits:
     III: [410, 469]
     IV:  [470, 703]
     V:   [653, 2000]
-minicircles to plot: [mO_097]   # which minicircle scorings to plot, number or string
+minicircles to plot: [mO_097]   # which minicircle scores to plot, number or string
 cassettes to drop:
     # - []
     - [mO_097, 120]
@@ -106,7 +106,7 @@ have transcriptomics: yes
 
 # transcripts.py: Extract transcripts from sam file and assign to cassettes and orphans
 transcriptomics infile:  smallRNA_3-520_490_520_mapped_to_398_mOs_2020-01-15.sam.gz
-transcripts pickle file: transcrips.pickle.gz
+transcripts pickle file: transcripts.pickle.gz
 
 # find_transcript_p.py: Find probability a transcript starts in the initiation sequence under null model of no expression
 transcript position distribution pickle file: transcript_position_distribution.pickle
