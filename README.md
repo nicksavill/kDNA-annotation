@@ -183,13 +183,13 @@ A histogram of the position of the 5' ends of the templated sequences of the tra
 
 #### Step 13
 
-Find the probability, $p$, of a randomly selected transcript being in the initiation site under the null hypothesis that the cassette is not expressed by running `find_transcript_p()`. 
+Find the probability, _p_, of a randomly selected transcript being in the initiation site under the null hypothesis that the cassette is not expressed by running `find_transcript_p()`. 
 
 This function requires `initiation site range` from Step 12. The distribution of the position of the 5' ends of the templated sequences of the transcripts relative to the 3' end of the forward repeat is plotted on a log scale. The fit of a normal distribution curve is shown as a blue line. The transcripts within the initiation site are not included in thie distribution. This data for this histogram is saved for later use in the config file parameter `transcript position distribution pickle file`.
 
-The aim is to get a good fit of a normal distribution curve to the empirical distribution in order to calculate $p$.  The parameter in the config file `transcript position fit range` should be adjusted to trim the tails of the empirical distribution in order to obtain a good fit. 
+The aim is to get a good fit of a normal distribution curve to the empirical distribution in order to calculate _p_.  The parameter in the config file `transcript position fit range` should be adjusted to trim the tails of the empirical distribution in order to obtain a good fit. 
 
-The function outputs the polynomial coefficients of the fit, the estimated mean and standard of the normal curve and the probability $p$. The config file parameter `p` should be assigned the value of $p$.
+The function outputs the polynomial coefficients of the fit, the estimated mean and standard of the normal curve and the probability _p_. The config file parameter `p` should be assigned the value of _p_.
 
 #### Step 14
 
@@ -201,7 +201,7 @@ The transcripts are used to predict the transcribed end position of gRNA genes. 
 
 Predict the expression status of sense and anti-sense strands of all cassettes by running `predict_expression()`.
 
-Based on the value of $p$ and the number of sense and anti-sense transcripts aligning to each cassette and its initiation site we calculate the probability of each cassette's strand being expressed or not. 
+Based on the value of _p_ and the number of sense and anti-sense transcripts aligning to each cassette and its initiation site we calculate the probability of each cassette's strand being expressed or not. 
 
 The function outputs human readable expression information to `expression text file` and a pickle file for Step 16. 
 
