@@ -54,7 +54,7 @@ In `config.yaml` change
 - the `maxicircle fasta infile` parameter to the file name of the maxicircle fasta file in the directory Infile,
 - the `unedited mRNA fasta infile` parameter to the file name of the unedited mRNA fasta file in the directory Infile,
 - the `edited mRNA fasta infile` parameter to the file name of the edited mRNA fasta file in the directory Infile,
-- the `transcriptomics infile` parameter to the file name of the transcriptomics sam file in the directory Infile,
+- if you have transcriptomics, the `transcriptomics infile` parameter to the file name of the transcriptomics sam file in the directory Infile,
 
 #### Step 3
 
