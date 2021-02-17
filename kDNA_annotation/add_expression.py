@@ -139,8 +139,8 @@ def get_expressed_genes(gRNAs, cassettes, mRNAs, minicircles, expression):
 
     def get_gene_alignment(gene):
         gene_mod = {}
-        if gene['circle_start'] is pd.NA:
-            return pd.Series(gene_mod)
+        # if gene['circle_start'] is pd.NA:
+        #     return pd.Series(gene_mod)
 
         if gene['cassette_label'] == 'Orphan':
             try:
