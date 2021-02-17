@@ -39,6 +39,7 @@ For each project set up the following directory structure:
         config.yaml
         In_files/
             minicircles file.fasta
+            maxicircles file.fasta
             edited mRNA file.fasta
             unedited mRNA file.fasta
             transcripts file.sam.gz
@@ -47,7 +48,13 @@ The files `pipeline.py` and `config.yaml` should be copied from `kDNA_annotation
 
 #### Step 2
 
-Edit the `project` parameter in `config.yaml` to the full path name of the project.
+In `config.yaml` change
+- the `project` parameter to the full path name of the project,
+- the `minicircle fasta infile` parameter to the file name of the minicircle fasta file in the directory Infile,
+- the `maxicircle fasta infile` parameter to the file name of the maxicircle fasta file in the directory Infile,
+- the `unedited mRNA fasta infile` parameter to the file name of the unedited mRNA fasta file in the directory Infile,
+- the `edited mRNA fasta infile` parameter to the file name of the edited mRNA fasta file in the directory Infile,
+- the `transcriptomics infile` parameter to the file name of the transcriptomics sam file in the directory Infile,
 
 #### Step 3
 

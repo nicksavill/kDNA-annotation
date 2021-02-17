@@ -1,3 +1,4 @@
+from .common import *
 from .clean_mini_and_maxicircles import main as clean_mini_and_maxicircles
 from .mRNA_process import main as mRNA_process
 from .hq_gRNAs import main as hq_gRNAs
