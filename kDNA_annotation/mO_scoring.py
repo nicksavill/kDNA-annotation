@@ -1,11 +1,7 @@
 """
-Identify cassettes by using nt frequency scores with inverted repeat nt frequency
-
-From MEME text output extract the nucleotide frequencies of the forward and
-reverse repeat motifs and save them in the file 'Test/repeat_nt_freqs.txt'
-
-Output is saved in
-    scores.pickle
+Create scoring vectors for gRNAs and inverted repeats
+Output minimum scores for identifying peaks in gRNA and repeat scores
+from the hq gRNAs
 """
 
 from operator import itemgetter
@@ -117,9 +113,6 @@ def main(config_file='config.yaml'):
     up = config['upstream']  
     down = config['downstream']
 
-    # some wiggle room in the search region for repeats
-    wiggle = config['wiggle']
-
     # expected number of cassettes per minicircle. Used to get minimum score of gRNA peaks
     expected_cassettes = config['expected number of cassettes'] 
 
@@ -131,16 +124,14 @@ def main(config_file='config.yaml'):
     hq_gRNAs = pickle_load(hq_gRNAs_pickle_file)
 
     # load nucleotide frequencies for forward and reverse repeat and their regular expressions
-    motif_positions, _, motif_nt_freqs = pickle_load(motifs_pickle_file)
+    motif_nt_freqs = pickle_load(motifs_pickle_file)[2]
 
-    forward_nt_freq = convert_to_log(motif_nt_freqs['forward repeat'])
-    reverse_nt_freq = convert_to_log(motif_nt_freqs['reverse repeat'])
+    # the expected number of cassettes based on observation of histogram of 5' end s of HQ gRNAs
     num_cassettes = expected_cassettes * len(minicircles)
 
 
     ##################################### gRNA SCORES FOR EACH MINICIRCLE #############################
     # calculate gRNA nucleotide frequencies from 'up'nt upstream from start of hq gRNAs to 'down'nt downstream
-    # only do this for coding strand gRNAs
     gRNA_frequencies = calculate_gRNA_nt_freqs(minicircles, hq_gRNAs, 'circle_start', up, down)
 
     # use these frequencies to produce scores along each minicircle to aid in cassette identification
@@ -152,16 +143,10 @@ def main(config_file='config.yaml'):
 
 
     ##################################### REPEAT SCORES FOR EACH MINICIRCLE #############################
-    forward_search_min = max(0, motif_positions['forward repeat'].min() - wiggle)
-    forward_search_max = motif_positions['forward repeat'].max() + wiggle
-    reverse_search_min = max(0, motif_positions['reverse repeat'].min() - wiggle)
-    reverse_search_max = motif_positions['reverse repeat'].max() + wiggle
-    print(f'forward search region {forward_search_min} - {forward_search_max}')
-    print(f'reverse search region {reverse_search_min} - {reverse_search_max}')
-    print('search window between peaks ', end='')
-    print(f'{reverse_search_min-forward_search_max} - {reverse_search_max-forward_search_min}')
+    # convert scores to log scale
+    forward_nt_freq = convert_to_log(motif_nt_freqs['forward repeat'])
+    reverse_nt_freq = convert_to_log(motif_nt_freqs['reverse repeat'])
 
-    # repeat scores for each minicircle 
     mO_forward_scores = get_mO_repeat_scores(forward_nt_freq, minicircles, repeat_len)
     mO_reverse_scores = get_mO_repeat_scores(reverse_nt_freq, minicircles, repeat_len)
 
@@ -174,9 +159,15 @@ def main(config_file='config.yaml'):
 
     ####################################### SAVE ####################################################
     # save for later use in identify_cassettes.py
-    i = [gRNA_peaks, mO_forward_scores, up, mO_reverse_scores, forward_search_min, forward_search_max, 
-        reverse_search_min, reverse_search_max, min_forward_score, min_reverse_score, repeat_len,
-        mO_gRNA_scores, min_gRNA_score]
+    i = [
+        mO_gRNA_scores,
+        mO_forward_scores,
+        mO_reverse_scores,
+        gRNA_peaks,
+        min_gRNA_score,
+        min_forward_score,
+        min_reverse_score
+    ]
 
     pickle_save(i, scores_file)
 

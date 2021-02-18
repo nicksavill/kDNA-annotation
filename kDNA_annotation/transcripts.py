@@ -118,7 +118,7 @@ def extract_alignments(cassettes, orphans, transcripts_alignment_file):
                             else:
                                 relpos = c[1]-(pos+l)
                         df_data['rel_pos'].append(relpos)
-                        # the position of the end of the transcript relative to end of 18bp forward repeat
+                        # the position of the end of the transcript relative to 3' end of forward repeat
                         # or for orphan the start of the aligned gRNA
                         df_data['end_pos'].append(relpos+l)
     return pd.DataFrame(df_data)
@@ -146,16 +146,17 @@ def main(config_file='config.yaml'):
     transcripts = extract_alignments(cassettes, orphans, transcripts_alignment_file)
 
 
-    ######################### PLOT TO FIND POSITION AND RANGE OF INITIATION SITE #################
-    plt.hist(transcripts['rel_pos'], bins=range(transcripts['rel_pos'].max()))
-    plt.xlabel('Transcript position relative to 18 bp repeat')
-    plt.ylabel('Frequency')
-    plt.title('Distribution of transcript position relative to forward 18bp repeat')
-    plt.show()
-
-
     ########################################### SAVE #############################################
     gzip_pickle_save(transcripts, transcripts_file)
+
+
+    ######################### PLOT TO FIND POSITION AND RANGE OF INITIATION SITE #################
+    plt.hist(transcripts['rel_pos'], bins=range(transcripts['rel_pos'].max()))
+    plt.xlabel('Transcript position relative to forward repeat')
+    plt.ylabel('Frequency')
+    plt.title("Distribution of transcript position relative to 5' end of forward repeat")
+    plt.show()
+
 
     # TODO ADD ALIGNMENTS HERE
 
