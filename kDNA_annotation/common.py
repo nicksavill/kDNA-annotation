@@ -85,22 +85,27 @@ def get_maxicircle(filename, file_format='fasta'):
 def pickle_save(x, file):
     with open(file, 'wb') as f:
         pickle.dump(x, f)
+    print(f'file {file} written')
 
 def pickle_load(file):
     with open(file, 'rb') as f:
+        print(f'file {file} loaded')
         return pickle.load(f)
 
 def gzip_pickle_save(x, file):
     with gzip.open(file, 'wb') as f:
         pickle.dump(x, f)
+    print(f'file {file} written')
 
 def gzip_pickle_load(file):
     with gzip.open(file, 'rb') as f:
+        print(f'file {file} loaded')
         return pickle.load(f)
 
 def dataframe_out(x, file, index=True):
     with open(file, 'w') as f:
         f.write(x.to_string(index=index))
+    print(f'file {file} written')
 
 def get_sequence(gRNA, up, down, minicircles):
     if gRNA['strand'] == 'coding':
@@ -113,6 +118,7 @@ def get_sequence(gRNA, up, down, minicircles):
 
 def load_config(file):
     with open(file) as f:
+        print(f'file {file} loaded')
         return yaml.safe_load(f)
 
 def get_directories(config):

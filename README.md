@@ -119,7 +119,7 @@ Search for inverted repeats and the initiation sequence using `meme`.
 
 If Meme is installed then it can be run from `pipeline.py` directly. This will search for the common motifs and save the results in the directory `Work_files/Meme`. 
 
-If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a minimum width of 5. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
+If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a minimum width of 5. **Also only search for motifs on the positive sense strand (you need to check a box for this option)**. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
 
 
 #### Step 8
