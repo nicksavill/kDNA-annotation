@@ -87,7 +87,10 @@ def main(config_file='config.yaml'):
                     this_motif[motif].append(start)
                 except IndexError:
                     state = 3
-
+                except ValueError:
+                    print('Make sure to search for motifs on the positive sense strand only')
+                    exit()
+                    
             elif state == 3:
                 # searching for nt frequencies
                 match = nt_freq_regex.search(line)

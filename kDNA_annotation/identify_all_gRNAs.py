@@ -360,6 +360,26 @@ def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
     gRNAs = gRNAs.drop(['tmp', 'exp_mRNA_end'], axis=1)
     return gRNAs.join(pd.DataFrame(gRNA_families, index=index))
 
+def cassette_type(gRNAs, cassettes):
+    """
+        A cassette is canonical if canonical gRNA exists on either strand, otherwise non-canonical
+    """
+    # get all gRNAs and drop duplicates due to same gRNA editing different versions of same gene
+    gRNAs = gRNAs[['mO_name', 'cassette_label']].drop_duplicates()
+    gRNAs['exist'] = True
+
+    l1 = len(cassettes)
+    # merge gRNAs with cassettes to get cassette type, some cassettes may be duplicated
+    cassettes = cassettes.merge(gRNAs, how='left')
+    # assign cassette type based on existence of canonical gRNA 
+    cassettes['type'] = cassettes['exist'].apply(lambda x: 'non-canonical' if x is np.nan else 'canonical')
+    # cassettes = cassettes.drop(['strand'], axis=1)
+    l2 = len(cassettes)
+    assert(l1 == l2), f'{l1} {l2}'
+
+    return cassettes
+
+
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
     config = load_config(config_file)
@@ -439,6 +459,8 @@ def main(config_file='config.yaml'):
         gRNAs['rel_pos'] = gRNAs.apply(get_relative_position, args=(init_site,), axis=1)
         # gRNA families 
         gRNAs = identify_gRNA_families(gRNAs, mRNAs, init_seq_len)
+        # determine type of gRNA (canonical or non-canonical) in each cassette
+        cassettes = cassette_type(gRNAs, cassettes)
 
 
     ############################################## SAVE ###########################################

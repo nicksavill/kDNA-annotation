@@ -3,6 +3,4 @@
 14. more output
 15. trancript alignment output
 17. use bam file instead
-19. structure.py
-20. analysis.py
 21. add_expression - choose the major strand 

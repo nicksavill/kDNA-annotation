@@ -119,7 +119,7 @@ Search for inverted repeats and the initiation sequence using `meme`.
 
 If Meme is installed then it can be run from `pipeline.py` directly. This will search for the common motifs and save the results in the directory `Work_files/Meme`. 
 
-If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a minimum width of 5. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
+If Meme is not installed then use the https://meme-suite.org/meme/ server. Change the meme-suite parameters to search for at least 3 motifs with a minimum width of 5. **Also only search for motifs on the positive sense strand (you need to check a box for this option)**. This should pick up the initiation sequence just upstream of the HQ gRNAs. Once Meme has finished, download the file `meme.txt` and save it in the directory `Work_files/Meme`.
 
 
 #### Step 8
@@ -231,3 +231,106 @@ Run `annotate_minicircles()` to output a genbank file of all the minicircles and
 #### Step 18
 
 Analysis. TODO.
+
+## Description of output files in Annotation directory
+
+All positions of features on minicircles and mRNAs are 0-indexed in the following output files. However, in the genbank file, and in the names assigned to gRNAs,  positions are 1-indexed.
+
+3' end positions of features are exclusive, i.e., the feature finishes at the position just before the recorded position.
+
+In the following tables an asterisk denotes columns only occurring when transcriptomics data is available.
+
+### cassettes_with_expression.txt and cassettes.txt
+
+Contains information about each and every cassette identified and labelled on all minicircles.
+
+column | description
+:--- | :---
+mO_name | Name of the minicircle the cassette is encoded on
+forward_start | 5' position of forward inverted repeat on the minicircle
+forward_end | 3' end of forward inverted repeat on the minicircle (exclusive)
+forward_seq | The sequence of the forward repeat
+reverse_start | 5' position of reverse inverted repeat on the minicircle
+reverse_end | 3' end of reverse inverted repeat on the minicircle (exclusive)
+reverse_seq | The sequence of the reverse repeat
+cassette_label | The assigned cassette label (aka position)
+expression* | **values = {expressed, non-expressed}**. The expression status of gRNAs in the cassette in available
+type | **values = {canonical, non-canonical}**. Whether the cassette contains at least one canonical gRNA, or no canonical gRNAs
+
+### gRNAs_with_expression.txt and gRNAs.txt
+
+Contains information about each and every canonical gRNA found by alignment of minicircles and the maxicircle to edited mRNA. This includes all gRNAs in cassettes and orphan gRNAs outside of cassettes. A cassette may contain multiple gRNAs that edit different positions on mRNAs. Guide RNAs that edit the same region of different versions of the same mRNA gene are also included. 
+
+column | description
+:--- | :---
+mO_name | Name of the minicircle (or maxicircle) the gRNA is encoded on
+cassette_label | The cassette label or position the gRNA is encoded in. Equals "Maxi" if encoded on the maxicircle, or "Orphan" if not encoded in a cassette.
+strand | **value = {template, coding}**. The strand the gRNA is encoded on.
+length | The length of the gRNA from the start of the anchor to the end of the guiding region.
+rel_start | For coding strand gRNAs: the distance from the 3' end of the forward repeat to the 5' end of the anchor. For template strand gRNAs: the distance from the 3' end of the anchor to the 5' end of the reverse repeat.
+circle_start | 5' position of the gRNA on the minicircle
+circle_end | 3' position of the gRNA on the minicircle (exclusive)
+mRNA_name | The name of the mRNA the gRNA edits (includes mRNA version number if necessary)
+product | The name of the mRNA the gRNA edits (does not include mRNA version number)
+mRNA_start | 5' position on the edited mRNA the gRNA edits 
+mRNA_end | 3' position on the edited mRNA the gRNA edits (exclusive)
+mRNA_seq | The mRNA sequence edited by the gRNA (5' to 3')
+gRNA_seq | The reversed gRNA sequence (i.e., 3' to 5') from 3' end of guiding region to 5' end of anchor
+pairing | Base-pairing between the mRNA and gRNA ("\|" = Watson-Crick, ":" = GU wobble, "." = mismatch)
+mismatches | Number of mismatches between the mRNA-gRNA duplex
+name | The given name of the gRNA 
+transcripts_total* | Total number of transcripts of the same strand as the gRNA that map to the gRNA on the minicircle. For cassette-encoded gRNAs this includes all transcripts whose 5' ends map within the cassette irrespective of whether they overlap with the gRNA.
+transcripts_init_site* | Total number of transcripts whose 5' ends map within the initiation site (positions 30, 31 and 32 for *T. brucei*) of the gRNA's cassette. For orphan gRNAs this equals "transcripts_total"
+p-value* | The probability that the number of transcripts mapping thr initiation site could have arisen by random chance under the null model that the gRNA is not expressed. Small p-values suggest rejection of the null model
+expression* | **values = {expressed, non-expressed}**. Whether the gRNA is considered expressed or not depending on "p-value"
+gene_rel_start* | For coding strand gRNAs in cassettes: the distance from the 3' end of the forward repeat to the 5' end of the initiation site. For template strand gRNAs in cassettes: the distance from the 3' end of the initiation site to the 5' end of the reverse repeat. Orphan gRNAs: distance to the 5' position on the minicircle with the most number of mapped cognate transcripts. Maxicircle gRNAs: set to "\<NA\>".
+initiation_sequence* | 5 nucleotide initiation sequence of the gRNA gene. This starts at the 5' (3' for template strand gRNAs) position on the minicircle  with the most number of mapped cognate transcripts. Non-expressed gRNAs will have an initiation sequence if transcripts map to the initiation site, otherwise set to "NaN".
+gene_rel_end* | For coding strand gRNAs in cassettes: the distance from the 3' end of the forward repeat to the 3' end of the gene. For template strand gRNAs in cassettes: the distance from the 5' end of the gRNA gene to the 5' end of the reverse repeat. For Orphan gRNAs this is relative to "gene_rel_start", i.e., the length of the gene. Maxicircle gRNAs: set to "\<NA\>".
+rel_pos* | Distance from the 5' end of the initiation sequence to the 5' end of the anchor (3' for template gRNAs). Maxicircle gRNAs: set to zero.
+anchor_type | **values = {unanchored, initiator, extenderA, extenderB}**. Unanchored means the 5' gRNA that creates the anchor for this gRNA is missing. Initiator means the anchor for this gRNA is fully within an unedited region. ExtenderA means that the 5' gRNA exists and creates the anchor region for this gRNA. ExtenderB means that the minimum anchor length (e.g. 6nt) is fully within an unedited region but that the full anchor includes insertions not covered by a previous gRNA. So gRNA maybe an initiator or an extender with missing 5' gRNA.
+gene_mRNA_end* | The 3' position on the mRNA of the family this gRNA belongs to based on coincident mapping of 5' ends of genes
+family_no | A number identifier for the family this gRNA belongs to. The number ascends for families running 5' to 3' along the mRNA (not used)
+family_end | The 3' position on the mRNA of the family this gRNA belongs. Equals "gene_mRNA_end" is transcriptomics is available. otherwise equals the coincident ends of anchors.
+family_id | The unique id of the family this gRNA belongs to
+
+
+
+### genes_with_expression.txt
+
+Only produced if transcriptomics is available. Gives information about each and every expressed gRNA gene (canonical and non-canonical, but not Maxicircle encoded gRNA genes) predicted by transcript mapping to minicircles. This includes all genes in cassettes and orphan genes outside of cassettes. A cassette may contain multiple genes that edit different positions on mRNAs. Genes of gRNAs that edit the same region of different versions of the same mRNA gene are also included. 
+
+
+column | description
+:--- | :---
+mO_name | Name of the minicircle the gene is encoded on
+cassette_label | The cassette label or position the gene is encoded in. Equals "Orphan" if not encoded in a cassette.
+strand | **value = {template, coding}**. The strand the gRNA is encoded on.
+transcripts_total | Total number of transcripts of the same strand as the gRNA that map to the gRNA on the minicircle. For cassette-encoded gRNAs this includes all transcripts whose 5' ends map within the cassette irrespective of whether they overlap with the gRNA.
+transcripts_init_site | Total number of transcripts whose 5' ends map within the initiation site (positions 30, 31 and 32 for *T. brucei*) of the gRNA's cassette. For orphan gRNAs this equals "transcripts_total"
+p-value | The probability that the number of transcripts mapping thr initiation site could have arisen by random chance under the null model that the gRNA is not expressed. Small p-values suggest rejection of the null model
+rel_start | For coding strand gRNAs: the distance from the 3' end of the forward repeat to the 5' end of the initiation sequence. For template strand gRNAs: the distance from the 3' end of the initiation sequence to the 5' end of the reverse repeat.
+initiation_sequence | 5 nucleotide initiation sequence of the gRNA gene. This starts at the 5' (3' for template strand gRNAs) position on the minicircle  with the most number of mapped cognate transcripts.
+rel_end | For coding strand gRNAs in cassettes: the distance from the 3' end of the forward repeat to the 3' end of the gene. For template strand gRNAs in cassettes: the distance from the 5' end of the gRNA gene to the 5' end of the reverse repeat. For Orphan gRNAs this is relative to "rel_start", i.e., the length of the gene.
+mRNA_name | The name of the mRNA the gRNA edits (includes mRNA version number if necessary). Equal to "NaN" for non-canonical gRNA genes.
+circle_end | 3' position of the gene on the minicircle (exclusive)
+circle_start | 5' position of the gene on the minicircle
+gRNA_seq | The reversed gRNA gene sequence from 5' end of initiation sequence to 3' end of gene (3' to 5')
+length | The length of the gene from the 5' end of the initiation sequence to the 3' end of the gene
+mRNA_end | 3' position on the edited mRNA the gene edits (exclusive). Equal to "\<NA\>" for non-canonical gRNA genes
+mRNA_seq | The mRNA sequence edited by the gRNA gene (5' to 3'). Equal to "NaN" for non-canonical gRNA genes.
+mRNA_start | 5' position on the edited mRNA the gRNA edits. This includes the initiation sequence. Equal to "\<NA\>" for non-canonical gRNA genes
+pairing | Base-pairing between the mRNA and gRNA ("\|" = Watson-Crick, ":" = GU wobble, "." = mismatch)
+type | **values = {canonical, non-canonical}**. Whether the gene is is canonical or non-canonical
+
+### Alignment files
+
+Lines | Description
+:--- | :---
+1-4 | Position along mRNA (0-indexed)
+5 | "M": Edited positions that are not covered by gRNAs (i.e., shows positions where gRNAs are missing)
+6 | "@": Positions of the 5' ends of expressed canonical gRNA genes, i.e., from 5' end of initiation sequence (expressed genes are shown as lines of minus signs under each aligned gRNA).
+7 | "X": Positions of the 5' ends of canonical gRNAs found by alignment to edited mRNA
+8 | The number of deleted "U"s to the right of the base it is over
+9 | Lowercase "u"s are insertions
+10 | Protein sequence 
+

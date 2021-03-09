@@ -369,8 +369,8 @@ def main(config_file='config.yaml'):
     expression = pickle_load(expression_pickle_file)
 
     if 'anchor_type' in gRNAs.columns:
-        print(f'The file {features_file} has been created with "have transcriptomics" is set to "no"')
-        print('Set it to "yes" and re-run pipeline from identify_CSB_gRNAs.py" onward if transcriptomics are available.')
+        print(f'The file {features_file} has been created with "have transcriptomics" set to "no"')
+        print('Set it to "yes" and re-run pipeline from identify_CSB_gRNAs.py" onward if transcriptomics is available.')
         exit()
 
     ###################### ADD EXPRESSION DATA TO gRNAs AND CASSETTES ###########################
