@@ -154,7 +154,7 @@ def main(config_file='config.yaml'):
     plt.hist(transcripts['rel_pos'], bins=range(transcripts['rel_pos'].max()))
     plt.xlabel('Transcript position relative to forward repeat')
     plt.ylabel('Frequency')
-    plt.title("Distribution of transcript position relative to 5' end of forward repeat")
+    plt.title("Distribution of transcript position relative to 3' end of forward repeat")
     plt.show()
 
 
