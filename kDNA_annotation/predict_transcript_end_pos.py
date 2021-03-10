@@ -100,5 +100,5 @@ def main(config_file='config.yaml'):
     print(f'Minimum variance statistic is {idx}: {stdev[idx]:.2f}')
     print(f'set "end position percentile" to {idx[:2]}')
 
-
     plt.show()
+    return fig
