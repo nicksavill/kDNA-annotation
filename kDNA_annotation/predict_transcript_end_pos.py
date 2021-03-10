@@ -8,15 +8,14 @@ def predict_end_position(transcripts, rel_end_statistics):
 
     def init_and_end(transcripts, rel_end_statistics):
         strand = transcripts.name[2]
-        init = {'mean_tail':0, 'mode_tail':0, '50%_tail':0, '90%_tail':0, '95%_tail':0, '75%_tail':0, '100%_tail':0,
-                'mean_all':0, 'mode_all':0, '50%_all':0, '90%_all':0, '95%_all':0, '75%_all':0, '100%_all':0}
+        init = {'mean_tail':0, 'mode_tail':0, '50%_tail':0, '90%_tail':0, '95%_tail':0, '75%_tail':0,
+                'mean_all':0, 'mode_all':0, '50%_all':0, '90%_all':0, '95%_all':0, '75%_all':0}
 
         init = dict([(s, 0) for s in rel_end_statistics])
 
         init['75%_all'] = transcripts['end_pos'].quantile(0.75)
         init['90%_all'] = transcripts['end_pos'].quantile(0.90)
         init['95%_all'] = transcripts['end_pos'].quantile(0.95)
-        init['max_all'] = transcripts['end_pos'].quantile(1.00)
         init['mean_all'] = transcripts['end_pos'].mean()
         init['50%_all'] = transcripts['end_pos'].median()
         cp = transcripts['end_pos'].mode()
@@ -33,7 +32,6 @@ def predict_end_position(transcripts, rel_end_statistics):
         init['75%_tail'] = transcripts['end_pos'].quantile(0.75)
         init['90%_tail'] = transcripts['end_pos'].quantile(0.90)
         init['95%_tail'] = transcripts['end_pos'].quantile(0.95)
-        init['max_tail'] = transcripts['end_pos'].quantile(1.00)
         init['50%_tail'] = transcripts['end_pos'].median()
         init['mean_tail'] = transcripts['end_pos'].mean()
         cp = transcripts['end_pos'].mode()
@@ -65,20 +63,20 @@ def main(config_file='config.yaml'):
 
 
     #################### COMPARE END POSITION STATS ################################################
-    rel_end_statistics = ['mean_tail', 'mode_tail', '50%_tail', '75%_tail', '90%_tail', '95%_tail', '100%_tail', 
-        'mean_all', 'mode_all', '50%_all', '75%_all', '90%_all', '95%_all', '100%_all']
+    rel_end_statistics = ['mean_tail', 'mode_tail', '50%_tail', '75%_tail', '90%_tail', '95%_tail', 
+        'mean_all', 'mode_all', '50%_all', '75%_all', '90%_all', '95%_all']
 
     end_pos = predict_end_position(transcripts, rel_end_statistics)
 
     # get the column names of the different methods of obtaining end position
-    labels = ['Mean', 'Mode', '50th percentile', '75th percentile', '90th percentile', '95th percentile', 'Maximum']
+    labels = ['Mean', 'Mode', '50th percentile', '75th percentile', '90th percentile', '95th percentile']
 
     # select only expressed gRNAs and merge with end rel_end_statistics
     end_pos = end_pos.reset_index().merge(gRNAs, how='outer')
 
     stdev = {}
 
-    fig, axes = plt.subplots(2, 7, sharex=True, sharey=True, figsize=(20, 10))
+    fig, axes = plt.subplots(2, 6, sharex=True, sharey=True, figsize=(20, 10))
     for p, axis in zip(rel_end_statistics, axes.flatten()):
         # distance between position statistic of 3' end of gene and 3' end of aligned gRNA 
         x = end_pos[p] - (end_pos['rel_start'] + end_pos['length'])
@@ -89,7 +87,7 @@ def main(config_file='config.yaml'):
         stdev[p] = x.std()
     axes[0, 0].set_ylabel('Number of expressed\ncanonical gRNAs')
     axes[1, 0].set_ylabel('Number of expressed\ncanonical gRNAs')
-    for i in range(7):
+    for i in range(6):
         axes[1, i].set_xlabel(f'{labels[i]}\ndistance (nt)')
         axes[0, i].set_title('With U-tail')
         axes[1, i].set_title('Without U-tail')
