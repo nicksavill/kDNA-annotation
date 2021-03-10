@@ -123,9 +123,9 @@ end position percentile: 90
 
 # add_expression.py: Add expression data to all gRNAs and cassettes and identify genes
 features with expression pickle file: features_with_expression.pickle.gz
-expressed genes text file:            genes_with_expression.txt
-gRNAs with expression text file:      gRNAs_with_expression.txt
-cassettes with expression text file:  cassettes_with_expression.txt
+expressed genes text file:            genes_with_expression.csv
+gRNAs with expression text file:      gRNAs_with_expression.csv
+cassettes with expression text file:  cassettes_with_expression.csv
 
 # annotate_minicircles.py: Final annotation
 genbank text file: annotated_mOs.gbk
