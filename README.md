@@ -176,6 +176,8 @@ With cassettes identified in Step 10, it is now possible to identify all canonic
 
 Sometimes obvious false positive gRNAs come to light later that haven't been filtered out in this Step. These can be manually removed by listing their minicircle name and cassette label in parameter `false_positives` and the function re-run.
 
+The option `allow_orphans` can take three options: `auto` will automatically identify the positions of orphans using the high quality gRNAs. Any orphans not occuring in these high quality positions will be filtered out, `none`: no orphans are allowed and will be filtered out, `all`: allow all orphans regardless of position on minicircles. 
+
 If transcriptomics is available for identifying expression status and initiation sequences then `have transcriptomics` should be set to "yes". Go to Step 12.
 
 If transcriptomics is not available then the position of the putative initiation site, relative to the 3' end of the forward repeat, is the modal distance (calculated from the HQ gRNAs) between the forward repeat and the initiation sequence motifs as found by Meme in Steps 7 and 8. Anchors are identified and gRNAs are assigned to gRNA families. Human readable text files of all cassettes and canonical gRNAs are output to the `annotation directory` in files `cassettes text file` and `gRNAs text file` respectively. Go to Step 17.
