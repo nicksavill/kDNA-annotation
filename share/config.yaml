@@ -88,7 +88,7 @@ gRNAs text file:            gRNAs.txt
 cassettes text file:        cassettes.txt
 features pickle file:       features.pickle.gz
 all gRNAs filter:
-    allow_orphans:      yes
+    allow_orphans:      auto
     min_anchor_length:  6
     min_gRNA_length:    *ref1
     anchor_seq:         (?=(\|+))  # watson-crick only for anchor
