@@ -218,16 +218,21 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
         mask1 = gRNAs['length'] <= filter['min_gRNA_length']+2
         mask2 = gRNAs['anchor_len'] <= filter['min_anchor_length']+1
         mask3 = gRNAs['mismatches'] >= max(0, filter['max_mismatches']-1)
-        gRNAs = gRNAs[~((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3))]
+        mask4 = gRNAs['mismatches'] >= filter['max_mismatches']
+        mask5 = gRNAs['cassette_label'] == 'Orphan' 
+        gRNAs = gRNAs[~((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))]
         print(f'after drop min quality gRNAs step 2 = {len(gRNAs)}')
 
-    # remove orphan gRNAs not in expected position
-    # get position of orphans
-    if filter['allow_orphans']:
+    if filter['allow_orphans'] == 'auto':
+        # remove orphan gRNAs not in expected position
+        # get position of orphans
         orphan_positions = gRNAs.apply(orphan_position, args=(cassettes,), axis=1)
         mask1 = orphan_positions.isin(filter['orphan_positions'])
         mask2 = orphan_positions.isnull()
         gRNAs = gRNAs[mask1 | mask2]
+        print(f'after drop incorrect orphans = {len(gRNAs)}')
+    elif filter['allow_orphans'] == 'none':
+        gRNAs = gRNAs[gRNAs['cassette_label'] != 'Orphan']
         print(f'after drop incorrect orphans = {len(gRNAs)}')
 
     # if two alignments exist in same cassette and one is much shorter then discard it
@@ -433,7 +438,8 @@ def main(config_file='config.yaml'):
         print(f"Estimated 5' end of initiation site relative to 3' end of forward repeat: {init_site}")
 
     ##################### GET HQ ORPHAN POSITIONS FOR FILTERING ####################################
-    if filter['allow_orphans']:
+    if filter['allow_orphans'] == 'auto':
+        # automcatically detect orphan position based on high quality gRNA orphans
         hq_gRNAs['orphan_position'] = hq_gRNAs.apply(orphan_position, args=(cassettes,), axis=1)
         orphans = hq_gRNAs[hq_gRNAs['orphan_position'].notnull()].drop(['mRNA_seq', 'gRNA_seq', 'sequence', 'product', 'mRNA_start', 'mRNA_end', 'anchor', 'mismatches'], axis=1)
         # add orphan positions to filter
@@ -442,7 +448,7 @@ def main(config_file='config.yaml'):
         print('High quality orphans and their positions')
         print(orphans.to_string())
         print(filter['orphan_positions'])
-    else:
+    elif filter['allow_orphans'] == 'none':
         print('Orphans not allowed')
 
 
