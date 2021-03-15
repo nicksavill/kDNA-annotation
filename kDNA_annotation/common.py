@@ -152,6 +152,9 @@ def identify_anchors(gRNAs, mRNAs, filter):
         mRNA['anchor_len'] = np.zeros(len(mRNA['seq']))
         mRNA['edited']  = np.zeros(len(mRNA['seq']))
 
+        # all edits (insertions and deletions along) an mRNA
+        edits = [True if i == 'u' or j != '-' else False for i, j in zip(mRNA['seq'], mRNA['deletions'])]
+
         # get all gRNAs for this mRNA
         g = copy(gRNAs[gRNAs['mRNA_name'] == mRNA_name])
         # and sort on mRNA_end and length
@@ -171,20 +174,24 @@ def identify_anchors(gRNAs, mRNAs, filter):
             # minimal anchor on mRNA (ie min_anchor_length)
             min_a_slice = slice(gRNA['mRNA_end']-a_start-filter['min_anchor_length'], gRNA['mRNA_end']-a_start)
             # get mRNA sequence of min and max anchors
-            min_seq  = mRNA['seq'][min_a_slice]
-            max_seq  = mRNA['seq'][max_a_slice]
+            min_seq  = edits[min_a_slice]
+            max_seq  = edits[max_a_slice]
+            # min_seq  = mRNA['seq'][min_a_slice]
+            # max_seq  = mRNA['seq'][max_a_slice]
             min_prior_edits = mRNA['edited'][min_a_slice]
             max_prior_edits = mRNA['edited'][max_a_slice]
 
             # determine the type of anchor of this gRNA
-            if 'u' not in min_seq:
+            # if 'u' not in min_seq:
+            if True not in min_seq:
                 if np.sum(min_prior_edits) == 0:
                     a_type = 'initiator'
                 else:
                     a_type = 'extenderB' # based on min_anchor_length could be an initiator or an extender
             else:
                 for m, e in zip(min_seq, min_prior_edits):
-                    if m == 'u' and e == 0:
+                    # if m == 'u' and e == 0:
+                    if m and e == 0:
                         a_type = 'unanchored'
                         break
                 else:
@@ -197,7 +204,8 @@ def identify_anchors(gRNAs, mRNAs, filter):
                 # pos = np.where(mRNA['edited'][max_a_slice] > 0)[0][0]
                 # find 5'-most position of last insertion of prior gRNA edits 
                 for p, (m, e) in enumerate(zip(max_seq[::-1], max_prior_edits[::-1])):
-                    if e == 0 and m == 'u':
+                    # if e == 0 and m == 'u':
+                    if e == 0 and m:
                         pos = len(max_seq)-p
                         a_end -= pos
                         break
@@ -208,12 +216,15 @@ def identify_anchors(gRNAs, mRNAs, filter):
                 # pos = np.where(mRNA['edited'][max_a_slice] > 0)[0][0]
                 # find 5'-most position of last insertion of prior gRNA edits 
                 for p, (m, e) in enumerate(zip(max_seq[::-1], max_prior_edits[::-1])):
-                    if e == 0 and m == 'u':
+                    # if e == 0 and m == 'u':
+                    if e == 0 and m:
                         pos = len(max_seq)-p
                         a_end -= pos
                         break
                 a_value = 4
             elif a_type == 'initiator':
+                # TODO SEARCH FOR FIRST TRUE IN ,AXSEQ TO FIND FIRST MISSED EDIT
+
                 # Initiator anchor of at least minimum length
                 # trim maximum anchor to first 'u' if it exists
                 match = re.search(r'\d', mRNA['deletions'][max_a_slice][::-1])
@@ -223,6 +234,7 @@ def identify_anchors(gRNAs, mRNAs, filter):
                 else:
                     dpos = len(max_seq)
                 # find first insertion in anchor
+                # epos = max_seq[::-1].find('u')
                 epos = max_seq[::-1].find('u')
                 if epos == -1:
                     epos = len(max_seq)
@@ -245,7 +257,6 @@ def identify_anchors(gRNAs, mRNAs, filter):
             np.place(x, (x==0) | (x==3), a_value)
 
             index.append(idx)
-            # anchor['anchor_length'].append(a_end)
             anchor['anchor_type'].append(a_type)
 
             # add edited region to mRNA
