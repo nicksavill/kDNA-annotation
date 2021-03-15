@@ -45,13 +45,14 @@ def get_mRNAs(insertion_file, deletion_file):
                 insertions[mRNA_name] = line[:-1]
 
     def add_N(seq):
-        l = len(seq[orf:]) % 3
+        # correct length of truncated sequence to be able to translate it
+        l = len(seq) % 3
         if l == 0:
-            return seq[orf:]
+            return seq
         elif l == 1:
-            return seq[orf:]+'NN'
+            return seq+'NN'
         else:
-            return seq[orf:]+'N'
+            return seq+'N'
 
     mRNAs = {}
     for name, edits in sorted(insertions.items()):
