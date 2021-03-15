@@ -225,7 +225,7 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
             out.append(''.join(x))
         out.append(mRNA_record['deletions'])
         out.append(mRNA_seq)
-        out.append(' '*mRNA_record['orf']+''.join(['{}  '.format(i) for i in mRNA_record['translate']]))
+        out.append(' '*mRNA_record['orf']+''.join([f'{i}  ' for i in mRNA_record['translate']]))
         for row in alignments:
             gRNA_name_align = [' ' for _ in range(full_length)]
             pairing_align   = [' ' for _ in range(full_length)]
