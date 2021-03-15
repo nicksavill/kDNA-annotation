@@ -21,10 +21,11 @@ The pipeline also uses `meme` from the https://meme-suite.org/meme/. You can eit
 
 The complexity and variablility of minicircles within and between species means that minicircle annotation of cassettes and gRNAs cannot be completely automated. User intervention is required throughout the annotation pipeline.
 
-The pipeline commands are contained in the file `share/pipeline.py`. The pipeline is directed by the contents of the configuration file `config.yaml`, an example of which is in the `share/` directory.
+The pipeline commands are contained in the file `share/pipeline.py`. Alternatively, the pipeline can be done in the jupyter notebook `share/pipeline.ipynb`. This may be handier if the diagnostic output from the pipeline needs to be available. The pipeline is directed by the contents of the configuration file `config.yaml`, an example of which is in the `share/` directory.
 
 kDNA annotation requires, at minimum, the following fasta files:
 - minicircle sequences
+- maxicircle sequence
 - unedited mRNA sequences
 - edited mRNA sequences
 
