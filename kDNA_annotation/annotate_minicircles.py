@@ -70,7 +70,7 @@ def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_le
         else:
             init_seq = None
 
-        features = []
+        features  = []
         if mO_name in CSB1:
             features += [SeqFeature(FeatureLocation(CSB1[mO_name]['start'], CSB1[mO_name]['end']), type='CSB1')]
         if mO_name in CSB2:
