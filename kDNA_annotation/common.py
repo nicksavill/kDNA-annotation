@@ -223,23 +223,25 @@ def identify_anchors(gRNAs, mRNAs, filter):
                         break
                 a_value = 4
             elif a_type == 'initiator':
-                # TODO SEARCH FOR FIRST TRUE IN ,AXSEQ TO FIND FIRST MISSED EDIT
-
-                # Initiator anchor of at least minimum length
-                # trim maximum anchor to first 'u' if it exists
-                match = re.search(r'\d', mRNA['deletions'][max_a_slice][::-1])
-                # search for deletions in anchor (this only seems to happen in A6_v1)
-                if match:
-                    dpos = match.start(0)
-                else:
-                    dpos = len(max_seq)
-                # find first insertion in anchor
+                # # Initiator anchor of at least minimum length
+                # # trim maximum anchor to first 'u' if it exists
+                # match = re.search(r'\d', mRNA['deletions'][max_a_slice][::-1])
+                # # search for deletions in anchor (this only seems to happen in A6_v1)
+                # if match:
+                #     dpos = match.start(0)
+                # else:
+                #     dpos = len(max_seq)
+                # # find first insertion in anchor
+                # # epos = max_seq[::-1].find('u')
                 # epos = max_seq[::-1].find('u')
-                epos = max_seq[::-1].find('u')
-                if epos == -1:
-                    epos = len(max_seq)
-                # take the minimum position of these two
-                pos = min(dpos, epos)
+                # if epos == -1:
+                #     epos = len(max_seq)
+                # # take the minimum position of these two
+                # pos = min(dpos, epos)
+                try:
+                    pos = max_seq.index(True)
+                except ValueError:
+                    pos = len(max_seq)
                 a_end -= len(max_seq)-pos
                 a_value = 2
             else:

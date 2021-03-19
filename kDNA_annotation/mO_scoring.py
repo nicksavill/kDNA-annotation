@@ -12,8 +12,8 @@ from .savitzky_golay import savitzky_golay
 
 def mO_nt_freq_scores(minicircles, nt_freqs, length):
     def get_score(mini_seq):
-        zeros = np.zeros(length)
-        return sum([nt_freqs.get(b, zeros)[i] for (i, b) in enumerate(mini_seq)])/length
+        missing_base = np.zeros(length)+np.log(0.001)
+        return sum([nt_freqs.get(b, missing_base)[i] for (i, b) in enumerate(mini_seq)])/length
 
     scores = {'mO_name':[], 'score':[], 'smoothed':[], 'smoothed_gradient':[]}
 
@@ -68,8 +68,8 @@ def get_gRNA_peaks(mO_gRNA_scores, num_cassettes, up):
     return gRNA_peaks, min_gRNA_score
 
 def get_score(seq, nt_freqs, length):
-    zeros = np.zeros(length)
-    return sum([nt_freqs.get(b, zeros)[i] for (i, b) in enumerate(seq)])/length
+    missing_base = np.zeros(length)+np.log(0.001)
+    return sum([nt_freqs.get(b, missing_base)[i] for (i, b) in enumerate(seq)])/length
 
 def get_mO_repeat_scores(nt_freqs, minicircles, repeat_len):
     idx = []

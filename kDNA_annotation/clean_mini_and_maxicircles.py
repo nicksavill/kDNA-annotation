@@ -63,6 +63,7 @@ def main(config_file='config.yaml'):
     # get length of CSB1 motif
     CSB1_len = len(re.sub('\[[ACGT]+\]', 'N', CSB_regexes['CSB1']))
     CSB1_missing = ~minicircles['seq'].str.contains(CSB_regexes['CSB1'])
+    CSB1_padded = minicircles['seq'].str[:CSB1_len] == 'N'*CSB1_len
     if CSB1_missing.any():
         print('## The following minicircles do not contain CSB1')
         print(minicircles[CSB1_missing]['description'].to_string(index=False), end='\n\n')
@@ -71,15 +72,22 @@ def main(config_file='config.yaml'):
             minicircles = minicircles[~CSB1_missing]
             changed = True
         else:
-            print('Possible CSB1 variants found in these minicircles. If valid, add them to configuration file and rerun.')
-            variants = minicircles[CSB1_missing]['seq'].str[:CSB1_len]
-            print(variants.unique(), end='\n\n')
-            print('Exiting')
-            exit()
+            # allow minicircles with padded N replacing CSB1
+            if CSB1_padded.any():
+                print("## Keeping the following minicircles that have been padded at their 5' end with N")
+                print(minicircles[CSB1_padded]['description'].to_string(index=False), end='\n\n')
 
-    # check sequences are aligned on CSB1
+            variants = minicircles[CSB1_missing & ~CSB1_padded]['seq'].str[:CSB1_len]
+            # if there any remaining variants output them and exit
+            if len(variants):
+                print('Possible CSB1 variants found in these minicircles. If valid, add them to configuration file and rerun.')
+                print(variants.unique(), end='\n\n')
+                print('Exiting')
+                exit()
+
+    # check sequences are aligned on CSB1. ignore minicircles that have been padded with N
     not_CSB1_aligned = ~minicircles['seq'].str.match(CSB_regexes['CSB1'])
-    if not_CSB1_aligned.any():
+    if (not_CSB1_aligned & ~CSB1_padded).any():
         print('## The following minicircles are not aligned on CSB1')
         print(minicircles[not_CSB1_aligned]['description'].to_string(index=False), end='\n\n')
         print('Realigning, although this may not work if sequence contains multiple CSB1 motifs.\n')
@@ -87,9 +95,10 @@ def main(config_file='config.yaml'):
         minicircles['seq'] = minicircles.apply(realign_on_CSB1, axis=1)
         changed = True
 
-    # check CSB3 is between 80 and 120nt downstream from CSB1
+    # check CSB3 is between 60 and 120nt downstream from CSB1
+    # minicircles with 5' padded Ns that overlap their putative CSB3 will not throw an error
     minicircles['CSB3_pos'] = minicircles['seq'].apply(get_motif_pos, args=(CSB_regexes['CSB3'],))
-    CSB3_wrong_pos = (80 < minicircles['CSB3_pos']) & (minicircles['CSB3_pos'] > 120)
+    CSB3_wrong_pos = (minicircles['CSB3_pos'] < 60) | (minicircles['CSB3_pos'] > 120)
     if CSB3_wrong_pos.any():
         minicircles['CSB1_count'] = minicircles['seq'].str.count(CSB_regexes['CSB1'])
         print('## The following minicircles have CSB3 in the wrong position')
