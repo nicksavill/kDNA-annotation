@@ -7,6 +7,7 @@ import pandas as pd
 from Bio import SeqIO
 from copy import copy
 from Bio.Seq import Seq
+from collections import OrderedDict
 
 pd.options.display.max_colwidth = 100
 
@@ -368,7 +369,8 @@ def collapse(gRNAs, minicircles, mRNAs, post_cassette_label=True):
             return gRNAs
 
         # construct merged alignment of collapsed alignments
-        gRNA = {}
+        # gRNA = {}
+        gRNA = OrderedDict()
         gRNA['mO_name']      = circle_name
         if post_cassette_label:
             gRNA['cassette_label'] = gRNAs['cassette_label'].values[0]
