@@ -63,8 +63,8 @@ def extract_alignment(alignment, gRNAs, mRNAs, circle_name, minicircles, filter)
     pairing = pairing[:length]
 
     # find position on mRNA of gRNA and check edits occur there
-    mRNA_pos = mRNA_record['DNA_seq'].index(mRNA_align)
-    if 't' not in mRNA_record['edits'][mRNA_pos:mRNA_pos+length]:
+    mRNA_start = mRNA_record['DNA_seq'].index(mRNA_align)
+    if 't' not in mRNA_record['edits'][mRNA_start:mRNA_start+length]:
         return
 
     # find start of gRNA on minicircle and assign cassette_pos or orphan or Maxi
@@ -82,13 +82,13 @@ def extract_alignment(alignment, gRNAs, mRNAs, circle_name, minicircles, filter)
     gRNA['circle_end']   = start+length
     gRNA['mRNA_name']    = mRNA_name
     gRNA['product']      = mRNA_name.split('_')[0]
-    gRNA['mRNA_start']   = mRNA_pos
-    gRNA['mRNA_end']     = mRNA_pos+length
-    gRNA['mRNA_seq']     = mRNA_record['edits'][mRNA_pos:mRNA_pos+length].replace('t', 'u').replace('T', 'U')
+    gRNA['mRNA_start']   = mRNA_start
+    gRNA['mRNA_end']     = mRNA_start+length
+    gRNA['mRNA_seq']     = mRNA_record['edits'][mRNA_start:mRNA_start+length].replace('t', 'u').replace('T', 'U')
     gRNA['gRNA_seq']     = complement(gRNA_align).replace('T', 'U')
     gRNA['pairing']      = pairing
-    gRNA['anchor']       = len(anchor_seq_regex.match(pairing[::-1]).group(1))
     gRNA['mismatches']   = gRNA['pairing'].count('.')
+    gRNA['anchor_len']   = len(anchor_seq_regex.match(pairing[::-1]).group(1))
     gRNAs.append(gRNA)
 
 def get_hq_gRNAs(mini_align_file, minicircles, mRNAs, filter):
@@ -117,8 +117,6 @@ def get_hq_gRNAs(mini_align_file, minicircles, mRNAs, filter):
     gRNAs = gRNAs.groupby(['mO_name', 'strand', 'mRNA_name', 'circle_end', 'mRNA_start']).apply(drop_smaller).reset_index(drop=True)
     gRNAs = gRNAs.groupby(['mO_name', 'strand', 'mRNA_name', 'circle_end', 'mRNA_end']).apply(drop_smaller).reset_index(drop=True)
     print(f'after drop smaller sub-alignnments = {len(gRNAs)}')
-
-    # trim the mismatches at the left-most end of the alignment
 
     # trim the mismatches at the left-most end of the alignment
     gRNAs = gRNAs.apply(trim_mismatches, axis=1)

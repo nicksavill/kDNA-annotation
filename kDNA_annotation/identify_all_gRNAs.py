@@ -282,7 +282,7 @@ def identify_CSBs(minicircles, CSB_regexes):
     CSB2_count = Counter()
     CSB3_count = Counter()
     for mO_name, minicircle_record in minicircles.items():
-        seq = str(minicircle_record.seq)[:100]
+        seq = str(minicircle_record.seq)[:150]
         match = CSB1_regex.search(seq)
         if match:
             CSB1[mO_name] = {'start':match.start(0), 'end':match.end(0)}
