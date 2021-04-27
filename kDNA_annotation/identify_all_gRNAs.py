@@ -219,7 +219,8 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
         mask2 = gRNAs['anchor_len'] <= filter['min_anchor_length']+1
         mask3 = gRNAs['mismatches'] >= max(0, filter['max_mismatches']-1)
         mask4 = gRNAs['mismatches'] >= filter['max_mismatches']
-        mask5 = gRNAs['cassette_label'] == 'Orphan' 
+        mask5 = gRNAs['cassette_label'] == 'Orphan'
+        # dataframe_out(gRNAs[((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))], 'false_positives.txt')
         gRNAs = gRNAs[~((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))]
         print(f'after drop min quality gRNAs step 2 = {len(gRNAs)}')
 
