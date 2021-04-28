@@ -89,8 +89,8 @@ def main(config_file='config.yaml'):
     axes[1, 0].set_ylabel('Number of expressed\ncanonical gRNAs')
     for i in range(6):
         axes[1, i].set_xlabel(f'{labels[i]}\ndistance (nt)')
-        axes[0, i].set_title('With U-tail')
-        axes[1, i].set_title('Without U-tail')
+        axes[0, i].set_title('Only transcripts\nwith a U-tail')
+        axes[1, i].set_title('All transcripts')
     fig.suptitle("Comparison of statistics for defining the 3' end of expressed gRNA genes")
 
     stdev = pd.Series(stdev)
