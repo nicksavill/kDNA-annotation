@@ -123,6 +123,30 @@ def extract_alignments(cassettes, orphans, transcripts_alignment_file):
                         df_data['end_pos'].append(relpos+l)
     return pd.DataFrame(df_data)
 
+def plot(distributions, strand, axes, scale, colour='C0'):
+    distribution = distributions[strand]
+    x = distribution.index
+
+    if scale == 'linear':
+        axes.bar(x, distribution.values, color=colour, label='data')
+    else:
+        axes.bar(x, np.log10(distribution.values), color=colour, label='data')
+
+    if strand == 'coding':
+        axes.set_xlabel('Sense-strand transcript position relative to forward 18 bp repeat')
+    else:
+        axes.set_xlabel('Anti-sense strand transcript position relative to reverse 18 bp repeat')
+        
+    if scale == 'linear' and strand == 'coding':
+        axes.set_ylabel('Number of sense strand transcripts');   
+    elif scale == 'log' and strand == 'coding':
+        axes.set_ylabel('$Log_{10}$ number of sense strand transcripts');   
+    elif scale == 'linear' and strand == 'template':
+        axes.set_ylabel('Number of anti-sense strand transcripts');   
+    elif scale == 'log' and strand == 'template':
+        axes.set_ylabel('$Log_{10}$ number of anti-sense strand transcripts');   
+
+
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
     config = load_config(config_file)
@@ -151,10 +175,16 @@ def main(config_file='config.yaml'):
 
 
     ######################### PLOT TO FIND POSITION AND RANGE OF INITIATION SITE #################
-    plt.hist(transcripts['rel_pos'], bins=range(transcripts['rel_pos'].max()))
-    plt.xlabel('Transcript position relative to forward repeat')
-    plt.ylabel('Frequency')
-    plt.title("Distribution of transcript position relative to 3' end of forward repeat")
+    cas_transcripts = transcripts[transcripts['cassette_label'] != 'Orphan']
+
+    # count number of transcripts at each position from forward repeat
+    distributions = cas_transcripts.groupby(['strand', 'rel_pos'])['mO_name'].count()
+
+    _, axes = plt.subplots(2, 2,  figsize=(2*6.4, 2*4.8))
+    plot(distributions, 'coding', axes[0, 0], 'linear')
+    plot(distributions, 'coding', axes[1, 0], 'log')
+    plot(distributions, 'template', axes[0, 1], 'linear', colour='C1')
+    plot(distributions, 'template', axes[1, 1], 'log', colour='C1')
     plt.show()
 
 
