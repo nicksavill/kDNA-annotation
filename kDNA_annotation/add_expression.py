@@ -68,7 +68,7 @@ def canonical_gRNA_expression(gRNAs, cassettes, expression, filter):
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].replace({np.nan:0})
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].astype(int)
     gRNAs['expression'] = gRNAs['expression'].replace({np.nan:'non-expressed'})
-    gRNAs['p-value'] = gRNAs['p-value'].replace({np.nan:1})
+
     # calculate rel_pos from start of anchor to initiation position
     # if it is negative, adjust gRNA so that it starts at or past the initiation position
     # keeping the anchor at the start of the gene
