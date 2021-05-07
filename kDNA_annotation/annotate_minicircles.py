@@ -217,14 +217,16 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
             a, x = [], []
 
         out = []
-        for j in [1000, 100, 10, 1]:
-            out.append(''.join([str((i//j)%10) if i%j == 0 else ' ' for i in range(1, len(mRNA_seq)+1)]))
+        j = 1000
+        out.append(''.join([str((i//j)%10) if i%j == 0 else ' ' for i in range(1, len(mRNA_seq)+1)]))
+        for j in [100, 10, 1]:
+            out.append(''.join([str((i//j)%10) if i%(1 if j == 1 else 10) == 0 else ' ' for i in range(1, len(mRNA_seq)+1)]))
         # out.append(''.join(['A' if i == 1 or i == 4 else 'I' if i == 2 else 'U' if i == 3 else '-' for i in mRNA_record['anchor']]))
         # out.append(''.join([str(int(i)) for i in mRNA_record['anchor_count']]))
         out.append(''.join(['M' if (k == 'u' or j != '-') and i == 0 else '-' for i, j, k in zip(mRNA_record['edited'], mRNA_record['deletions'], mRNA_seq)]))
-        if config['have transcriptomics']:
-            out.append(''.join(a))
-            out.append(''.join(x))
+        # if config['have transcriptomics']:
+        #     out.append(''.join(a))
+        #     out.append(''.join(x))
         out.append(mRNA_record['deletions'])
         out.append(mRNA_seq)
         out.append(' '*mRNA_record['orf']+''.join([f'{i}  ' for i in mRNA_record['translate']]))
@@ -250,9 +252,9 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 info = []
                 # if gRNA['expression'] == 'expressed':
                 #     info += ['*']
-                # info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_length'])}"]
+                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
                 # info += [gRNA['name']]
-                info += [gRNA['name'], gRNA['family_id']]
+                # info += [gRNA['name'], gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]
                 gRNA_header = ' '.join(info)
