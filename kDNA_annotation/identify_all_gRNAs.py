@@ -6,7 +6,7 @@ from collections import Counter, OrderedDict
 
 from .common import *
 
-def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassettes, filter):
+def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassettes, filter, low_quality_file):
     def extract_alignment(alignment, gRNAs, mRNAs, circle_name, minicircles, cas_dict, filter):
         mRNA_name, mRNA_align_o, gRNA_align_o, strand = alignment.split()
         if mRNA_name in mRNAs:
@@ -220,7 +220,7 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
         mask3 = gRNAs['mismatches'] >= max(0, filter['max_mismatches']-1)
         mask4 = gRNAs['mismatches'] >= filter['max_mismatches']
         mask5 = gRNAs['cassette_label'] == 'Orphan'
-        # dataframe_out(gRNAs[((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))], 'false_positives.txt')
+        dataframe_out(gRNAs[((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))], low_quality_file)
         gRNAs = gRNAs[~((mask1 & mask2) | (mask1 & mask3) | (mask2 & mask3) | (mask4 & mask5))]
         print(f'after drop min quality gRNAs step 2 = {len(gRNAs)}')
 
@@ -400,6 +400,7 @@ def main(config_file='config.yaml'):
     features_file         = f"{work_dir}/{config['features pickle file']}"
     hq_gRNAs_pickle_file  = f"{work_dir}/{config['high quality gRNAs pickle file']}"
     motifs_pickle_file    = f"{work_dir}/{config['motifs pickle file']}"
+    low_quality_file      = f"{work_dir}/{config['low quality text file']}"
     gRNAs_text_file       = f"{annotation_dir}/{config['gRNAs text file']}"
     cassettes_text_file   = f"{annotation_dir}/{config['cassettes text file']}"
 
@@ -456,7 +457,7 @@ def main(config_file='config.yaml'):
     ####################################### IDENTIFY CSBs AND gRNAS ###############################
     CSB1, CSB2, CSB3 = identify_CSBs(minicircles, CSB_regexes)
 
-    gRNAs = identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassettes, filter)
+    gRNAs = identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassettes, filter, low_quality_file)
 
     # Run the following if there are no transcriptomics data to identify expressed genes
     if not config['have transcriptomics']:
@@ -469,7 +470,7 @@ def main(config_file='config.yaml'):
         # determine type of gRNA (canonical or non-canonical) in each cassette
         cassettes = cassette_type(gRNAs, cassettes)
 
-
+    exit()
     ############################################## SAVE ###########################################
     # save cassettes and gRNAs to annotation directory if there are no transcriptomics
     if not config['have transcriptomics']:
