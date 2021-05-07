@@ -87,6 +87,7 @@ gRNAs pickle file:          gRNAs.pickle
 gRNAs text file:            gRNAs.txt
 cassettes text file:        cassettes.txt
 features pickle file:       features.pickle.gz
+low quality text file:      low_quality.txt # output all low quality alignments
 all gRNAs filter:
     allow_orphans:      auto
     min_anchor_length:  6
