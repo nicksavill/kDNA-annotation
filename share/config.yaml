@@ -64,12 +64,12 @@ plot feature histograms: yes
 # mO_scoring.py: Nucleotide bias scoring of gRNAs and 18bp repeats for each minicircle
 repeat biases text file: repeat_nt_biases.txt
 scores pickle file:      scores.pickle
-wiggle: 9 # some wiggle room in the search region for repeats
 expected number of cassettes: 4 # expected number of cassettes per minicircle. Used to get minimum score of gRNA peaks
 
 # identify_cassettes.py: Identify inverted repeats and cassettes
 cassettes pickle file: cassettes.pickle
 cassettes text file:   cassettes.txt
+wiggle: 13        # some wiggle room in the search region for repeats
 plot cassette histogram: yes
 cassette labels and limits: 
     I:   [100, 259]
@@ -125,13 +125,18 @@ end position percentile: 90
 
 # add_expression.py: Add expression data to all gRNAs and cassettes and identify genes
 features with expression pickle file: features_with_expression.pickle.gz
-expressed genes text file:            genes_with_expression.csv
-gRNAs with expression text file:      gRNAs_with_expression.csv
-cassettes with expression text file:  cassettes_with_expression.csv
-expressed genes csv file:            genes_with_expression.csv
-gRNAs with expression csv file:      gRNAs_with_expression.csv
-cassettes with expression csv file:  cassettes_with_expression.csv
+expressed genes text file:            genes_with_expression.txt
+gRNAs with expression text file:      gRNAs_with_expression.txt
+cassettes with expression text file:  cassettes_with_expression.txt
+expressed genes csv file:             genes_with_expression.csv
+gRNAs with expression csv file:       gRNAs_with_expression.csv
+cassettes with expression csv file:   cassettes_with_expression.csv
 
 # annotate_minicircles.py: Final annotation
 genbank text file: annotated_mOs.gbk
 output genbank: yes
+
+# analysis
+utail pickle file: utails.pickle.gz
+mO gRNA families pickle file: mO_gRNA_families.pickle
+gRNA family mOs pickle file: gRNA_family_mOs.pickle
