@@ -87,6 +87,7 @@ gRNAs pickle file:          gRNAs.pickle
 gRNAs text file:            gRNAs.txt
 cassettes text file:        cassettes.txt
 features pickle file:       features.pickle.gz
+low quality text file:      low_quality.txt # output all low quality alignments
 all gRNAs filter:
     allow_orphans:      auto
     min_anchor_length:  6
@@ -112,6 +113,7 @@ transcripts pickle file: transcripts.pickle.gz
 transcript position distribution pickle file: transcript_position_distribution.pickle
 transcript position fit range: [15, 70] # the range of positions to fit the normal distribution to transcript position
 initiation site range: [30, 32] # distance of initiation site from 3' end of forward repeat found from plot of transcripts.py
+initiation site strand: coding # strand on which initiation site mostly occurs
 
 # predict_transcript_end_pos.py
 

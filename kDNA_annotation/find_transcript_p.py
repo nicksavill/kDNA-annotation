@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from .common import *
 
-def estimate_normal_curve(transcripts, init_site_range, fit_range):
+def estimate_normal_curve(transcripts, init_site_range, init_strand, fit_range):
     """ probability of a randomly selected transcript being in the initiation site
         under the null hypothesis that the cassette is not expressed.
         Or, more precisely, that transcript positions are normally distributed
@@ -15,17 +15,18 @@ def estimate_normal_curve(transcripts, init_site_range, fit_range):
     # to minimise effect of expressed gRNAs on coding strand
     mask1 = (init_site_range[0] <= transcripts['rel_pos']) & (transcripts['rel_pos'] <= init_site_range[1])
     mask2 = transcripts['cassette_label'] != 'Orphan'
-    transcripts = transcripts[~mask1 & mask2]
+    mask3 = transcripts['strand'] == init_strand
+    transcripts = transcripts[~mask1 & mask2 & mask3]
 
     # count number of transcripts at each position from forward repeat
     distribution = transcripts.groupby(['rel_pos'])['mO_name'].count()
 
     # discard ends as they are not normal, log counts and fit a quadratic
     # use positions 15 to 70 inclusive, minus init_length as not using initiation site
-    init_length = init_site_range[1]- init_site_range[0] + 1
+    init_length = init_site_range[1] - init_site_range[0] + 1
     ss = slice(fit_range[0], fit_range[1]-init_length)
     x = distribution.index[ss]
-    y = np.log(distribution.values[ss])
+    y = np.log10(distribution.values[ss])
     z = np.polyfit(x, y, 2)
 
     return distribution, x, y, z
@@ -42,6 +43,7 @@ def main(config_file='config.yaml'):
 
     ########################################## PARAMETERS #########################################
     init_site_range = config['initiation site range']
+    init_strand = config['initiation site strand']
     fit_range = config['transcript position fit range']
 
 
@@ -50,10 +52,10 @@ def main(config_file='config.yaml'):
 
 
     ######################################### DETERMINE p ##########################################
-    distribution, x, y, z = estimate_normal_curve(transcripts, init_site_range, fit_range)
+    distribution, x, y, z = estimate_normal_curve(transcripts, init_site_range, init_strand, fit_range)
 
     # mean and standard dev of the fitted normal curve
-    sigma = np.sqrt(-1/(2*z[0]))
+    sigma = np.sqrt(-np.log10(np.exp(1))/(2*z[0]))
     mu = -z[1]/(2*z[0])
     # probability a random transcript starts in the initiation site
     p = norm.cdf(init_site_range[1]+1, mu, sigma)-norm.cdf(init_site_range[0], mu, sigma)
