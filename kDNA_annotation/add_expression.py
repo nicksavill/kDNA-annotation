@@ -68,7 +68,7 @@ def canonical_gRNA_expression(gRNAs, cassettes, expression, filter):
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].replace({np.nan:0})
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].astype(int)
     gRNAs['expression'] = gRNAs['expression'].replace({np.nan:'non-expressed'})
-    gRNAs['p-value'] = gRNAs['p-value'].replace({np.nan:1})
+    # gRNAs['p-value'] = gRNAs['p-value'].replace({np.nan:1})
     # calculate rel_pos from start of anchor to initiation position
     # if it is negative, adjust gRNA so that it starts at or past the initiation position
     # keeping the anchor at the start of the gene
@@ -353,6 +353,9 @@ def main(config_file='config.yaml'):
     genes_text_file        = f"{annotation_dir}/{config['expressed genes text file']}"
     gRNAs_text_file        = f"{annotation_dir}/{config['gRNAs with expression text file']}"
     cassettes_text_file    = f"{annotation_dir}/{config['cassettes with expression text file']}"
+    genes_csv_file        = f"{annotation_dir}/{config['expressed genes csv file']}"
+    gRNAs_csv_file        = f"{annotation_dir}/{config['gRNAs with expression csv file']}"
+    cassettes_csv_file    = f"{annotation_dir}/{config['cassettes with expression csv file']}"
 
 
     ########################################## PARAMETERS #########################################
@@ -386,6 +389,9 @@ def main(config_file='config.yaml'):
     dataframe_out(genes, genes_text_file)
     dataframe_out(gRNAs, gRNAs_text_file)
     dataframe_out(cassettes, cassettes_text_file)
+    genes.to_csv(genes_csv_file)
+    gRNAs.to_csv(gRNAs_csv_file)
+    cassettes.to_csv(cassettes_csv_file)
 
     # save for annotation and analysis
     gzip_pickle_save([minicircles, mRNAs, CSB1, CSB2, CSB3, cassettes, gRNAs, genes], features_with_exp_file)
