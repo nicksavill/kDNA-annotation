@@ -470,7 +470,6 @@ def main(config_file='config.yaml'):
         # determine type of gRNA (canonical or non-canonical) in each cassette
         cassettes = cassette_type(gRNAs, cassettes)
 
-    exit()
     ############################################## SAVE ###########################################
     # save cassettes and gRNAs to annotation directory if there are no transcriptomics
     if not config['have transcriptomics']:
