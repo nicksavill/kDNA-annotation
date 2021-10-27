@@ -103,7 +103,7 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
                     # gRNA must be an orphan
                     if filter['allow_orphans']:
                         c_label = 'Orphan'
-                        rel_start = 0
+                        rel_start = pd.NA
                     else:
                         return
             else:
@@ -114,7 +114,7 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
             c_label = 'Maxi'
             # set to zero so that filtering can work
             start = 0
-            rel_start = 0
+            rel_start = pd.NA
 
         # saved alignment information
         gRNA = OrderedDict()
@@ -305,9 +305,9 @@ def identify_CSBs(minicircles, CSB_regexes):
     return CSB1, CSB2, CSB3
 
 def get_relative_position(gRNA, init_site):
-    """ relative position of gRNA from 5' end of initiation site. For orphans distance is 0 """
+    """ relative position of gRNA from 5' end of initiation site. For orphans distance is NA """
     if gRNA['cassette_label'] in ['Orphan', 'Maxi']:
-        return 0
+        return pd.NA
     else:
         return gRNA['rel_start'] - init_site
 
@@ -317,7 +317,8 @@ def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
     strand_name = {'coding':'', 'template':'t'}
     index = []
 
-    gRNAs['exp_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
+    # set rel_pos to 0 for orphans
+    gRNAs['exp_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos'].apply(lambda x: 0 if x is pd.NA else x)
     gRNAs['exp_mRNA_end'] = gRNAs['exp_mRNA_end'].astype('Int32')
     gRNAs['tmp'] = gRNAs.apply(lambda x: x['cassette_label']+strand_name[x['strand']], axis=1)
 
@@ -463,8 +464,8 @@ def main(config_file='config.yaml'):
     if not config['have transcriptomics']:
         # add anchors
         gRNAs, mRNAs = identify_anchors(gRNAs, mRNAs, filter)
-        # relative postion of the gRNA to the initiation site 
-        gRNAs['rel_pos'] = gRNAs.apply(get_relative_position, args=(init_site,), axis=1)
+        # relative postion of the gRNA to the initiation site (NA for orphans)
+        gRNAs['rel_pos'] = gRNAs.apply(get_relative_position, args=(init_site,), axis=1).astype('Int64')
         # gRNA families 
         gRNAs = identify_gRNA_families(gRNAs, mRNAs, init_seq_len)
         # determine type of gRNA (canonical or non-canonical) in each cassette

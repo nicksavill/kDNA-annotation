@@ -15,7 +15,7 @@ def canonical_gRNA_expression(gRNAs, cassettes, expression, filter):
             For orphans distance is already given by minus rel_start
         """
         if gRNA['cassette_label'] == 'Orphan':
-            return -gRNA['rel_start']
+            return -gRNA['gene_rel_start']
 
         if gRNA['strand'] == 'coding':
             rel_pos = gRNA['circle_start']-gRNA['forward_end']-gRNA['gene_rel_start']
@@ -59,6 +59,7 @@ def canonical_gRNA_expression(gRNAs, cassettes, expression, filter):
     gRNAs = gRNAs.merge(expression, on=['mO_name', 'cassette_label', 'strand'], how='left', suffixes=(None, '_g'))
 
     # rename columns of the expressed gene relative start and end
+    # for orphans we need to later set gene_rel_start and gene_rel_end to pd.NA
     gRNAs = gRNAs.rename(columns={'rel_start_g':'gene_rel_start', 'rel_end':'gene_rel_end'})
     # convert some columns to nullable integer
 
@@ -68,7 +69,7 @@ def canonical_gRNA_expression(gRNAs, cassettes, expression, filter):
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].replace({np.nan:0})
     gRNAs['transcripts_init_site'] = gRNAs['transcripts_init_site'].astype(int)
     gRNAs['expression'] = gRNAs['expression'].replace({np.nan:'non-expressed'})
-    # gRNAs['p-value'] = gRNAs['p-value'].replace({np.nan:1})
+
     # calculate rel_pos from start of anchor to initiation position
     # if it is negative, adjust gRNA so that it starts at or past the initiation position
     # keeping the anchor at the start of the gene
