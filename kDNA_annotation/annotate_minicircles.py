@@ -338,11 +338,11 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 if gRNA['cassette_label'] == 'Maxi':
                     gRNA['cassette_label'] = ''
 
-                # info = [gRNA['name'], str(gRNA['family_no']), f"{a_type[gRNA['anchor_type']]*gRNA['anchor_length']}"]
+                # info = [gRNA['name'], str(gRNA['family_no']), f"{a_type[gRNA['anchor_type']]*gRNA['anchor_len']}"]
                 info = []
                 # if gRNA['expression'] == 'expressed':
                 #     info += ['*']
-                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_length'])}"]
+                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
                 # info += [gRNA['name']]
                 # info += [gRNA['name'], gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
@@ -398,7 +398,7 @@ def main(config_file='config.yaml'):
         genes = None
 
     ##################### SAVE GENBANK FILE AND FULL ALIGNMENTS TO #################################
-    submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
+    # submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
 
     if config['output genbank']:
         annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len)
