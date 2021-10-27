@@ -2,6 +2,8 @@ import pathlib
 import pandas as pd
 from collections import OrderedDict
 from Bio.SeqFeature import SeqFeature, FeatureLocation
+from operator import itemgetter
+from os import system
 
 from .common import *
 
@@ -34,24 +36,109 @@ Line 4:     extent of small RNA sequence
 
 """
 
+def submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir):
+    def make_locus_tag(gene):
+        return f'GT92_{gene["mO_name"]}_{gene["cassette_label"]}_{gene["mRNA_name"]}'
+
+    features = dict([(i, []) for i in minicircles])
+    
+    # extract all canonical gRNA info
+    gRNAs = gRNAs[gRNAs['mO_name'] != 'Maxicircle']
+    genes['expression'] = 'expressed'
+    genes['gene_circle_start'] = genes['circle_start']
+    genes['gene_circle_end'] = genes['circle_end']
+    
+    mask = genes['mRNA_name'].isna()
+    
+    # add gene start and end positions to all expressed canonical gRNAs
+    x = gRNAs.merge(genes[~mask][['mO_name', 'cassette_label', 'mRNA_name', 'gene_circle_start', 'gene_circle_end']], on=['mO_name', 'cassette_label', 'mRNA_name'], how='left')
+    # for non-expressed canonicals gene position = gRNA position
+    x['gene_circle_start'] = x.apply(lambda y: y['circle_start'] if y['expression'] == 'non-expressed' else y['gene_circle_start'], axis=1)
+    x['gene_circle_end'] = x.apply(lambda y: y['circle_end'] if y['expression'] == 'non-expressed' or y['gene_circle_end'] is pd.NA else y['gene_circle_end'], axis=1)
+    # add gene information on all non-canonical expressed gRNAs 
+    x = x.append(genes[mask][['mO_name', 'cassette_label', 'init_seq', 'circle_end', 'circle_start', 'gene_circle_end', 'gene_circle_start', 'expression']])
+    # change strand to coding for non-canonicals
+    x['strand'] = x['strand'].replace({np.nan:'coding'})
+    # change mRNA name to "nc" for non-canonicals
+    x['mRNA_name'] = x['mRNA_name'].replace({np.nan:'nc'})
+    # create NCBI locus tag for all gRNAs (except non-expressed non-canonicals)
+    x['locus_tag'] = x.apply(make_locus_tag, axis=1)
+    
+    dataframe_out(x, 'tmp.csv')
+    
+    for mO_name, r in CSB1.items():
+        features[mO_name].append((r['start']+1, r['end'], 'misc_feature', {'note':'CSB1'}))
+    for mO_name, r in CSB2.items():
+        features[mO_name].append((r['start']+1, r['end'], 'misc_feature', {'note':'CSB2'}))
+    for mO_name, r in CSB3.items():
+        features[mO_name].append((r['start']+1, r['end'], 'misc_feature', {'note':'CSB3'}))
+        
+    for _, r in cassettes.iterrows():
+        features[r['mO_name']].append((r['forward_start']+1, r['reverse_end'], 'misc_structure', {'note':f'gRNA cassette position {r["cassette_label"]}'}))
+        features[r['mO_name']].append((r['forward_start']+1, r['forward_end'], 'repeat_region', {'note':'forward', 'rpt_type':'inverted'}))
+        features[r['mO_name']].append((r['reverse_start']+1, r['reverse_end'], 'repeat_region', {'note':'reverse', 'rpt_type':'inverted'}))
+        
+    for _, r in x.iterrows():
+        # add the gene (same position as the gRNA by alignment if not expressed)
+        if r['strand'] == 'coding':
+            features[r['mO_name']].append((r['gene_circle_start']+1, r['gene_circle_end'], 'gene', {'locus_tag':r['locus_tag']}))
+        else:
+            features[r['mO_name']].append((r['gene_circle_end'], r['gene_circle_start']+1, 'gene', {'locus_tag':r['locus_tag']}))
+        # only expressed genes have an initiation sequence
+        if r['expression'] == 'expressed':
+            if r['strand'] == 'coding':
+                features[r['mO_name']].append((r['gene_circle_start']+1, r['gene_circle_start']+init_seq_len, 'misc_feature', {'note':'initiator sequence', 'locus_tag':r['locus_tag']}))
+            else:
+                features[r['mO_name']].append((r['gene_circle_end'], r['gene_circle_end']-init_seq_len, 'misc_feature', {'note':'initiator sequence', 'locus_tag':r['locus_tag']}))
+        # add canonical and non-canonical gRNAs
+        if r['mRNA_name'] != 'nc':
+            if r['strand'] == 'coding':
+                features[r['mO_name']].append((r['circle_start']+1, r['circle_end'], 'ncRNA', {'ncRNA_class':'canonical guide RNA', 'product':r['mRNA_name'], 'note':'guide RNA molecule, specifies the insertion or deletion of nucleotides into the product gene', 'inference':'alignment of minicircle to edited mRNA', 'locus_tag':r['locus_tag']}))
+            else:
+                features[r['mO_name']].append((r['circle_end'], r['circle_start']+1, 'ncRNA', {'ncRNA_class':'canonical guide RNA', 'product':r['mRNA_name'], 'note':'guide RNA molecule, specifies the insertion or deletion of nucleotides into the product gene', 'inference':'alignment of minicircle to edited mRNA', 'locus_tag':r['locus_tag']}))
+        else:
+            features[r['mO_name']].append((r['circle_start']+1, r['circle_end'], 'ncRNA', {'ncRNA_class':'non-canonical guide RNA', 'product':'unknown', 'inference':'alignment of RNA-seq to minicircle', 'locus_tag':r['locus_tag']}))
+        
+    with open(f'{genbank_dir}/minicircles.tbl', 'w') as w:      
+        for mO_name, r in features.items():
+            w.write(f'>Feature {mO_name}\n')
+            # r is a list of feature tuples
+            for f in sorted(r, key=itemgetter(0)):
+                w.write(f'{f[0]}\t{f[1]}\t{f[2]}\n')
+                for k, v in f[3].items():
+                    w.write(f'\t\t\t{k}\t{v}\n')
+                    
+    SeqIO.write(minicircles.values(), f'{genbank_dir}/minicircles.fsa', 'fasta')
+    info = \
+        '[organism=Trypanosoma brucei brucei]' \
+        '[strain=AnTat1.1 90-13]' \
+        '[topology=circular]' \
+        '[location=mitochondrion]'
+        
+    cmd = f'tbl2asn -p {genbank_dir} -a s -t minicircles.sbt -V v -j "{info}" -Y comments.txt'
+    print(cmd)
+    system(cmd)
+        
 def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len):
     cstrand = {'coding':1, 'template':-1}
     for mO_name, minicircle_record in minicircles.items():
-        # minicircle_record.description = 'Trypanosoma brucei brucei strain AnTat1.1 90-13'
-        minicircle_record.annotations['molecule_type'] = 'DNA'
-        # minicircle_record.annotations['accession'] = ''
-        # minicircle_record.annotations['version'] = ''
-        # minicircle_record.annotations['keywords'] = ['kinetoplast DNA', 'kDNA', 'guide RNA', 'gRNA', '18bp inverted repeats']
+        # mO_No = mO_name[3:]
+        # minicircle_record.description = f'Trypanosoma brucei brucei strain AnTat1.1 90-13 {mO_name} kinetoplast, whole genome shotgun sequence.'
+        # minicircle_record.annotations['molecule_type'] = 'DNA'
+        # minicircle_record.annotations['accession'] = f'LBIR01000{mO_No}'
+        # minicircle_record.annotations['version'] = f'LBIR01000{mO_No}.2'
+        # minicircle_record.annotations['keywords'] = ['WGS']
         # minicircle_record.annotations['source'] = 'kinetoplast Trypanosoma brucei brucei'
-        # minicircle_record.annotations['organism'] = 'Trypanosoma brucei brucei'
+        # minicircle_record.annotations['organism'] = 'Trypanosoma brucei brucei Eukaryota; Euglenozoa; Kinetoplastida; Trypanosomatidae; Trypanosoma.'
         # minicircle_record.annotations['topology'] = 'circular'
-        # minicircle_record.annotations['date'] = str(datetime.datetime.now().strftime("%d-%b-%Y")).upper()
-        # minicircle_record.annotations['taxonomy'] = ['Trypanosomatid', 'etc']
-        # ref = Reference()
-        # ref.authors = 'Cooper, S., Savill, N. J., Schnaufer, A.'
-        # ref.title = 'kDNA genome T.b.brucei'
-        # ref.journal = 'Unpublished'
-        # minicircle_record.annotations['references'] = [ref]
+        # minicircle_record.annotations['date'] = str(datetime.now().strftime("%d-%b-%Y")).upper()
+        # # minicircle_record.annotations['taxonomy'] = ['Trypanosomatid', 'etc']
+        # ref1 = Reference()
+        # ref1.authors = 'Cooper,S., Wadsworth,E.S., Ochsenreiter,T., Ivens,A., Savill,N.J.'
+        # ref1.title = 'Assembly and annotation of the mitochondrial minicircle genome of a differentiation-competent strain of Trypanosoma brucei'
+        # ref1.journal = 'Nucleic Acids Research'
+        # ref1.pubmed_id = '31665448'
+        # minicircle_record.annotations['references'] = [ref1]
 
         # as there can be multiple genes per cassette
         # we need to drop duplicate init_seq in the same cassette otherwise we can have
@@ -250,9 +337,9 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 info = []
                 # if gRNA['expression'] == 'expressed':
                 #     info += ['*']
-                # info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_length'])}"]
+                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_length'])}"]
                 # info += [gRNA['name']]
-                info += [gRNA['name'], gRNA['family_id']]
+                # info += [gRNA['name'], gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]
                 gRNA_header = ' '.join(info)
@@ -306,6 +393,8 @@ def main(config_file='config.yaml'):
         genes = None
 
     ##################### SAVE GENBANK FILE AND FULL ALIGNMENTS TO #################################
+    submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
+
     if config['output genbank']:
         annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len)
         minicircle_list = [v for _, v in sorted(minicircles.items())]
