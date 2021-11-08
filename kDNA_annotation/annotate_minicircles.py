@@ -1,7 +1,8 @@
 import pathlib
 import pandas as pd
+import datetime
 from collections import OrderedDict
-from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.SeqFeature import SeqFeature, FeatureLocation, Reference
 from operator import itemgetter
 from os import system
 
@@ -122,23 +123,25 @@ def submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_
 def annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len):
     cstrand = {'coding':1, 'template':-1}
     for mO_name, minicircle_record in minicircles.items():
-        # mO_No = mO_name[3:]
-        # minicircle_record.description = f'Trypanosoma brucei brucei strain AnTat1.1 90-13 {mO_name} kinetoplast, whole genome shotgun sequence.'
-        # minicircle_record.annotations['molecule_type'] = 'DNA'
-        # minicircle_record.annotations['accession'] = f'LBIR01000{mO_No}'
-        # minicircle_record.annotations['version'] = f'LBIR01000{mO_No}.2'
-        # minicircle_record.annotations['keywords'] = ['WGS']
-        # minicircle_record.annotations['source'] = 'kinetoplast Trypanosoma brucei brucei'
-        # minicircle_record.annotations['organism'] = 'Trypanosoma brucei brucei Eukaryota; Euglenozoa; Kinetoplastida; Trypanosomatidae; Trypanosoma.'
-        # minicircle_record.annotations['topology'] = 'circular'
-        # minicircle_record.annotations['date'] = str(datetime.now().strftime("%d-%b-%Y")).upper()
-        # # minicircle_record.annotations['taxonomy'] = ['Trypanosomatid', 'etc']
-        # ref1 = Reference()
-        # ref1.authors = 'Cooper,S., Wadsworth,E.S., Ochsenreiter,T., Ivens,A., Savill,N.J.'
-        # ref1.title = 'Assembly and annotation of the mitochondrial minicircle genome of a differentiation-competent strain of Trypanosoma brucei'
-        # ref1.journal = 'Nucleic Acids Research'
-        # ref1.pubmed_id = '31665448'
-        # minicircle_record.annotations['references'] = [ref1]
+        minicircle_record.description = 'Trypanosoma brucei brucei strain AnTat1.1 90-13'
+        minicircle_record.annotations['molecule_type'] = 'DNA'
+        # minicircle_record.annotations['accession'] = ''
+        # minicircle_record.annotations['version'] = ''
+        minicircle_record.annotations['keywords'] = ['WGS']
+        minicircle_record.annotations['source'] = 'kinetoplast Trypanosoma brucei brucei'
+        minicircle_record.annotations['organism'] = 'Trypanosoma brucei brucei'
+        minicircle_record.annotations['topology'] = 'circular'
+        minicircle_record.annotations['date'] = str(datetime.datetime.now().strftime("%d-%b-%Y")).upper()
+        minicircle_record.annotations['taxonomy'] = ['Eukaryota', 'Euglenozoa', 'Kinetoplastida', 'Trypanosomatidae']
+        ref1 = Reference()
+        ref1.authors = 'Cooper,S., Wadsworth,E.S., Ochsenreiter,T., Ivens,A., Savill,N.J. and Schnaufer,A.'
+        ref1.title = 'Assembly and annotation of the mitochondrial minicircle genome of a differentiation-competent strain of Trypanosoma brucei'
+        ref1.journal = 'RNA'
+        ref2 = Reference()
+        ref2.authors = 'Sinclair Cooper, Elizabeth S. Wadsworth, Achim Schnaufer and Nicholas J. Savill'
+        ref2.title = 'Organisation of minicircle cassettes and guide RNA genes of Trypanosoma brucei'
+        ref2.journal = 'Submitted'
+        minicircle_record.annotations['references'] = [ref1, ref2]
 
         # as there can be multiple genes per cassette
         # we need to drop duplicate init_seq in the same cassette otherwise we can have
@@ -335,11 +338,11 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 if gRNA['cassette_label'] == 'Maxi':
                     gRNA['cassette_label'] = ''
 
-                # info = [gRNA['name'], str(gRNA['family_no']), f"{a_type[gRNA['anchor_type']]*gRNA['anchor_length']}"]
+                # info = [gRNA['name'], str(gRNA['family_no']), f"{a_type[gRNA['anchor_type']]*gRNA['anchor_len']}"]
                 info = []
                 # if gRNA['expression'] == 'expressed':
                 #     info += ['*']
-                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_length'])}"]
+                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
                 # info += [gRNA['name']]
                 # info += [gRNA['name'], gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
@@ -395,7 +398,7 @@ def main(config_file='config.yaml'):
         genes = None
 
     ##################### SAVE GENBANK FILE AND FULL ALIGNMENTS TO #################################
-    submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
+    # submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
 
     if config['output genbank']:
         annotate(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len)
