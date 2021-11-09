@@ -303,13 +303,6 @@ def identify_CSBs(minicircles, CSB_regexes):
     print(CSB3_count)
     return CSB1, CSB2, CSB3
 
-def get_relative_position(gRNA, init_site):
-    """ relative position of gRNA from 5' end of initiation site. For orphans distance is NA """
-    if gRNA['cassette_label'] in ['Orphan', 'Maxi']:
-        return pd.NA
-    else:
-        return gRNA['rel_start'] - init_site
-
 def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
     """ assign gRNAs to gRNA families """
     gRNA_families = {'family_no':[], 'family_end':[], 'family_id':[]}
@@ -385,6 +378,27 @@ def cassette_type(gRNAs, cassettes):
 
     return cassettes
 
+def get_gene_start(gRNA, cassettes, minicircles, init_seq_nt_freqs):
+    cl = gRNA['cassette_label']
+    if cl in ['Orphan', 'Maxi']:
+        return pd.Series([pd.NA, pd.NA], index=['gene_rel_start', 'init_seq'])
+
+    mO_name = gRNA['mO_name']
+    c = cassettes.query('mO_name == @mO_name and cassette_label == @cl')
+    if gRNA['strand'] == 'coding':
+        s = c['forward_end'].iloc[0] + 30
+        seq = str(minicircles[mO_name].seq)[s:s+7]
+    else:
+        s = c['reverse_start'].iloc[0] - 37
+        seq = complement(str(minicircles[mO_name].seq)[s:s+7][::-1])
+
+    scores = []
+    for i in range(3):
+        scores.append(sum([np.log(init_seq_nt_freqs[b][j]+0.001) for j, b in enumerate(seq[i:i+5])]))
+    
+    idx = np.argmax(np.array(scores))
+    return pd.Series([30+idx, seq[idx:idx+5]], index=['gene_rel_start', 'init_seq'])
+
 
 def main(config_file='config.yaml'):
     ############################################### FILES #########################################
@@ -411,8 +425,12 @@ def main(config_file='config.yaml'):
     mRNAs = get_mRNAs(edited_mRNA_t_file, deletion_mRNA_file)
     cassettes = pickle_load(cassettes_pickle_file)
     hq_gRNAs = pickle_load(hq_gRNAs_pickle_file)
+
     # load motif positions on each minicircle
     motif_positions = pickle_load(motifs_pickle_file)[0]
+
+    # load nucleotide frequencies for initiation sequence
+    init_seq_nt_freqs = pickle_load(motifs_pickle_file)[2]['init sequence']
 
 
     ########################################## PARAMETERS #########################################
@@ -462,8 +480,9 @@ def main(config_file='config.yaml'):
     if not config['have transcriptomics']:
         # add anchors
         gRNAs, mRNAs = identify_anchors(gRNAs, mRNAs, filter)
-        # relative postion of the gRNA to the initiation site (NA for orphans)
-        gRNAs['rel_pos'] = gRNAs.apply(get_relative_position, args=(init_site,), axis=1).astype('Int64')
+        # start of the gene and initiation sequence (NA for orphans)
+        gRNAs = gRNAs.join(gRNAs.apply(get_gene_start, args=(cassettes, minicircles, init_seq_nt_freqs), axis=1))
+        gRNAs['rel_pos'] = gRNAs['rel_start'] - gRNAs['gene_rel_start']        
         # gRNA families 
         gRNAs = identify_gRNA_families(gRNAs, mRNAs, init_seq_len)
         # determine type of gRNA (canonical or non-canonical) in each cassette

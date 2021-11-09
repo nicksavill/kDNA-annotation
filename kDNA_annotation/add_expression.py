@@ -261,7 +261,7 @@ def identify_expressed_gRNA_families(gRNAs, mRNAs, init_seq_len):
     strand_name = {'coding':'', 'template':'t'}
     index = []
 
-    gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
+    gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos'].apply(lambda x: 0 if x is pd.NA else x)
     gRNAs['gene_mRNA_end'] = gRNAs['gene_mRNA_end'].astype('Int32')
     gRNAs['tmp'] = gRNAs.apply(lambda x: x['cassette_label']+strand_name[x['strand']], axis=1)
 
@@ -289,7 +289,6 @@ def identify_expressed_gRNA_families(gRNAs, mRNAs, init_seq_len):
         # find regions where groups of gRNAs anchor to mRNA starting from 3' end of edited mRNA
         for m in re.finditer('1+', a):
             s, e = m.start(0), m.end(0)
-            # s, e = m.start(0)+1, m.end(0)-1
             # get all gRNAs that anchor at this region
             anchor_group = g[(g[g_end] >= s) & (g[g_end] <= e)]
 
