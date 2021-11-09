@@ -378,26 +378,35 @@ def cassette_type(gRNAs, cassettes):
 
     return cassettes
 
-def get_gene_start(gRNA, cassettes, minicircles, init_seq_nt_freqs):
+def get_gene_start(gRNA, cassettes, minicircles, init_seq_nt_freqs, init_seq_len, init_site_range):
+    """ get gene relative start position and initiation sequence 
+        based on nt frequency of HQ gRNA initiation motif"""
     cl = gRNA['cassette_label']
     if cl in ['Orphan', 'Maxi']:
         return pd.Series([pd.NA, pd.NA], index=['gene_rel_start', 'init_seq'])
 
+    r0 = init_site_range[0]
+    r1 = init_site_range[1]
+    r = r1 - r0
     mO_name = gRNA['mO_name']
+    # get the cassette of this gRNA
     c = cassettes.query('mO_name == @mO_name and cassette_label == @cl')
+    # get minicircle sequence from the initiation region 
     if gRNA['strand'] == 'coding':
-        s = c['forward_end'].iloc[0] + 30
-        seq = str(minicircles[mO_name].seq)[s:s+7]
+        s = c['forward_end'].iloc[0] + r0
+        seq = str(minicircles[mO_name].seq)[s:s+init_seq_len+r]
     else:
-        s = c['reverse_start'].iloc[0] - 37
-        seq = complement(str(minicircles[mO_name].seq)[s:s+7][::-1])
+        s = c['reverse_start'].iloc[0] - (r1 + init_seq_len)
+        seq = complement(str(minicircles[mO_name].seq)[s:s+init_seq_len+r][::-1])
 
+    # score the sequence at all positions within the initiation region
     scores = []
-    for i in range(3):
-        scores.append(sum([np.log(init_seq_nt_freqs[b][j]+0.001) for j, b in enumerate(seq[i:i+5])]))
+    for i in range(r+1):
+        scores.append(sum([np.log(init_seq_nt_freqs[b][j]+0.001) for j, b in enumerate(seq[i:i+init_seq_len])]))
     
+    # return the relative initiation site and initiation sequence 
     idx = np.argmax(np.array(scores))
-    return pd.Series([30+idx, seq[idx:idx+5]], index=['gene_rel_start', 'init_seq'])
+    return pd.Series([r0+idx, seq[idx:idx+init_seq_len]], index=['gene_rel_start', 'init_seq'])
 
 
 def main(config_file='config.yaml'):
@@ -439,6 +448,7 @@ def main(config_file='config.yaml'):
     CSB_regexes = config['CSB regexes']
     # the position of the initiation site relative to the 18bp repeat 
     init_seq_len = config['initiation sequence length']
+    init_site_range = config['initiation site range']
 
     # The region in which to search for gRNAs relative to the 5' end of the forward repeat
     # Use the HQ gRNA forward repeat positions  
@@ -481,7 +491,7 @@ def main(config_file='config.yaml'):
         # add anchors
         gRNAs, mRNAs = identify_anchors(gRNAs, mRNAs, filter)
         # start of the gene and initiation sequence (NA for orphans)
-        gRNAs = gRNAs.join(gRNAs.apply(get_gene_start, args=(cassettes, minicircles, init_seq_nt_freqs), axis=1))
+        gRNAs = gRNAs.join(gRNAs.apply(get_gene_start, args=(cassettes, minicircles, init_seq_nt_freqs, init_seq_len, init_site_range), axis=1))
         gRNAs['rel_pos'] = gRNAs['rel_start'] - gRNAs['gene_rel_start']        
         # gRNA families 
         gRNAs = identify_gRNA_families(gRNAs, mRNAs, init_seq_len)
