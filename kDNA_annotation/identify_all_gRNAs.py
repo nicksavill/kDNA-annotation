@@ -103,7 +103,7 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
                     # gRNA must be an orphan
                     if filter['allow_orphans']:
                         c_label = 'Orphan'
-                        rel_start = pd.NA
+                        rel_start = 0
                     else:
                         return
             else:
@@ -114,7 +114,7 @@ def identify_gRNAs(mini_align_file, maxi_align_file, minicircles, mRNAs, cassett
             c_label = 'Maxi'
             # set to zero so that filtering can work
             start = 0
-            rel_start = pd.NA
+            rel_start = 0
 
         # saved alignment information
         gRNA = OrderedDict()
@@ -379,11 +379,11 @@ def cassette_type(gRNAs, cassettes):
     return cassettes
 
 def get_gene_start(gRNA, cassettes, minicircles, init_seq_nt_freqs, init_seq_len, init_site_range):
-    """ get gene relative start position and initiation sequence 
+    """ get gene relative start and end positions and initiation sequence 
         based on nt frequency of HQ gRNA initiation motif"""
     cl = gRNA['cassette_label']
     if cl in ['Orphan', 'Maxi']:
-        return pd.Series([pd.NA, pd.NA], index=['gene_rel_start', 'init_seq'])
+        return pd.Series([0, gRNA['rel_start']+gRNA['length'], gRNA['gRNA_seq'][-5:][::-1].replace('U', 'T')], index=['gene_rel_start', 'gene_rel_end', 'init_seq'])
 
     r0 = init_site_range[0]
     r1 = init_site_range[1]
@@ -406,7 +406,7 @@ def get_gene_start(gRNA, cassettes, minicircles, init_seq_nt_freqs, init_seq_len
     
     # return the relative initiation site and initiation sequence 
     idx = np.argmax(np.array(scores))
-    return pd.Series([r0+idx, seq[idx:idx+init_seq_len]], index=['gene_rel_start', 'init_seq'])
+    return pd.Series([r0+idx, gRNA['rel_start']+gRNA['length'], seq[idx:idx+init_seq_len]], index=['gene_rel_start', 'gene_rel_end', 'init_seq'])
 
 
 def main(config_file='config.yaml'):

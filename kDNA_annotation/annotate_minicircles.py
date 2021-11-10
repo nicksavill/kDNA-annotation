@@ -222,16 +222,13 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
 
     a_type = {'extenderA':'_', 'extenderB':'_', 'initiator':'_', 'unanchored':'*'}
 
-    if config['have transcriptomics']:
-        gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
-        gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
-        gRNAs['gene_mRNA_start'] = gRNAs['gene_mRNA_end'] - gRNAs['gene_length']
-        gRNAs['sort_pos'] = gRNAs['gene_mRNA_end']
-    else:
-        gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
-        gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
-        gRNAs['expression'] = 'unknown'
-        gRNAs['sort_pos'] = gRNAs['mRNA_end']
+    if not config['have transcriptomics']:
+        gRNAs['expression'] = 'expressed'
+
+    gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
+    gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
+    gRNAs['gene_mRNA_start'] = gRNAs['gene_mRNA_end'] - gRNAs['gene_length']
+    gRNAs['sort_pos'] = gRNAs['gene_mRNA_end']
 
     for mRNA_name, mRNA_record in mRNAs.items():
         mRNA_seq = mRNA_record['seq']
@@ -292,21 +289,17 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                     rightmost[row] = gRNA['mRNA_end']-gRNA['length']
                 row += 1
 
-        if config['have transcriptomics']:
-            x = ['-' for _ in range(full_length)]
-            for row in alignments:
-                for gRNA in row:
-                    if gRNA['expression'] == 'expressed':
-                        x[int(gRNA['gene_mRNA_end'])-1] = 'X'
+        x = ['-' for _ in range(full_length)]
+        for row in alignments:
+            for gRNA in row:
+                if gRNA['expression'] == 'expressed':
+                    x[int(gRNA['gene_mRNA_end'])-1] = 'X'
 
-            a = ['-' for _ in range(full_length)]
-            for row in alignments:
-                for gRNA in row:
-                    if gRNA['expression'] == 'expressed':
-                        a[int(gRNA['mRNA_end'])-1] = '@'
-
-        else:
-            a, x = [], []
+        a = ['-' for _ in range(full_length)]
+        for row in alignments:
+            for gRNA in row:
+                if gRNA['expression'] == 'expressed':
+                    a[int(gRNA['mRNA_end'])-1] = '@'
 
         out = []
         j = 1000
@@ -316,9 +309,8 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
         # out.append(''.join(['A' if i == 1 or i == 4 else 'I' if i == 2 else 'U' if i == 3 else '-' for i in mRNA_record['anchor']]))
         # out.append(''.join([str(int(i)) for i in mRNA_record['anchor_count']]))
         out.append(''.join(['M' if (k == 'u' or j != '-') and i == 0 else '-' for i, j, k in zip(mRNA_record['edited'], mRNA_record['deletions'], mRNA_seq)]))
-        # if config['have transcriptomics']:
-        #     out.append(''.join(a))
-        #     out.append(''.join(x))
+        out.append(''.join(a))
+        out.append(''.join(x))
         out.append(mRNA_record['deletions'])
         out.append(mRNA_seq)
         out.append(' '*mRNA_record['orf']+''.join([f'{i}  ' for i in mRNA_record['translate']]))
@@ -365,8 +357,8 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
             out.append(''.join(gRNA_name_align))
             out.append(''.join(pairing_align))
             out.append(''.join(sequence_align))
-            if config['have transcriptomics']:
-                out.append(''.join(expression))
+            out.append(''.join(expression))
+
         with open(f'{alignments_dir}/{mRNA_name}.txt', 'w') as f:
             outs = '\n'.join(out)
             f.write(outs)
