@@ -457,14 +457,6 @@ def main(config_file='config.yaml'):
     filter['gRNA_search_region'] = [gRNA_search_start, gRNA_search_end]
     print(f"gRNA search region relative to 5' end of forward repeat: {filter['gRNA_search_region']}")
 
-    # The start of the initiation sequence uses the mode of the distances between the # 3' ends 
-    # of the forward repeat motifs and the 5' ends of the initiation sequence motifs of HQ gRNAs
-    # This is only used if expression information is not available 
-    if config['have transcriptomics']:
-        init_site = None
-    else:
-        init_site = (motif_positions['init sequence'] - motif_positions['forward repeat'] - config['repeat length']).mode().loc[0]
-        print(f"Estimated 5' end of initiation site relative to 3' end of forward repeat: {init_site}")
 
     ##################### GET HQ ORPHAN POSITIONS FOR FILTERING ####################################
     if filter['allow_orphans'] == 'auto':
