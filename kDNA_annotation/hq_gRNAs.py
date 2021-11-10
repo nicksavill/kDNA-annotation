@@ -123,7 +123,7 @@ def get_hq_gRNAs(mini_align_file, minicircles, mRNAs, filter):
 
     # filter out low quality alignments, step 1
     minl = gRNAs['length'] < filter['min_gRNA_length']
-    mina = gRNAs['anchor'] < filter['min_anchor_length']
+    mina = gRNAs['anchor_len'] < filter['min_anchor_length']
     maxm = gRNAs['mismatches'] > filter['max_mismatches']
     gRNAs = gRNAs[~(minl | mina | maxm)]
 

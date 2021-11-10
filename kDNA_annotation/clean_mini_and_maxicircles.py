@@ -31,6 +31,13 @@ def main(config_file='config.yaml'):
     pathlib.Path(meme_dir).mkdir(parents=True, exist_ok=True) 
 
 
+    ################# CONVERT MINICIRCLE GENBANK TO FASTA #########################################
+    if 'genbank infile' in config:
+        genbank_file = f"{in_dir}/{config['genbank infile']}"
+        count = SeqIO.convert(genbank_file, "genbank", minicircle_file, "fasta")
+        print(f"Converted {count} records")
+
+
     ########################################## PARAMETERS #########################################
     CSB_regexes = config['CSB regexes']
     remove_non_CSB1 = config['remove minicircles without CSB1']
@@ -48,7 +55,7 @@ def main(config_file='config.yaml'):
 
 
     ##################################### CHECKS ##################################################
-    # if changed is True output output a warning 
+    # if changed is True output a warning 
     changed = False
 
     # check for duplicates

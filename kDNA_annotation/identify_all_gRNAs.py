@@ -452,7 +452,7 @@ def main(config_file='config.yaml'):
 
     # The region in which to search for gRNAs relative to the 5' end of the forward repeat
     # Use the HQ gRNA forward repeat positions  
-    gRNA_search_start = config['upstream'] - motif_positions['forward repeat'].max()
+    gRNA_search_start = motif_positions['init sequence'].min() - motif_positions['forward repeat'].median()
     gRNA_search_end = gRNA_search_start + config['expected gRNA length']
     filter['gRNA_search_region'] = [gRNA_search_start, gRNA_search_end]
     print(f"gRNA search region relative to 5' end of forward repeat: {filter['gRNA_search_region']}")
@@ -462,7 +462,7 @@ def main(config_file='config.yaml'):
     if filter['allow_orphans'] == 'auto':
         # automcatically detect orphan position based on high quality gRNA orphans
         hq_gRNAs['orphan_position'] = hq_gRNAs.apply(orphan_position, args=(cassettes,), axis=1)
-        orphans = hq_gRNAs[hq_gRNAs['orphan_position'].notnull()].drop(['mRNA_seq', 'gRNA_seq', 'sequence', 'product', 'mRNA_start', 'mRNA_end', 'anchor', 'mismatches'], axis=1)
+        orphans = hq_gRNAs[hq_gRNAs['orphan_position'].notnull()].drop(['mRNA_seq', 'gRNA_seq', 'sequence', 'product', 'mRNA_start', 'mRNA_end', 'anchor_len', 'mismatches'], axis=1)
         # add orphan positions to filter
         filter['orphan_positions'] = orphans['orphan_position'].unique()
 

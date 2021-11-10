@@ -18,6 +18,7 @@ def mO_nt_freq_scores(minicircles, nt_freqs, length):
     scores = {'mO_name':[], 'score':[], 'smoothed':[], 'smoothed_gradient':[]}
 
     for mO_name, m in minicircles.items():
+        print(mO_name)
         score = np.array([get_score(m.seq[i:i+length]) for i in range(len(m.seq)-length)])
         smoothed = savitzky_golay(score, 31, 5)
         gradient = savitzky_golay(score, 31, 5, 1)
@@ -34,10 +35,11 @@ def calculate_gRNA_nt_freqs(minicircles, gRNAs, feature, up, down):
     
     seqs = gRNAs.apply(get_seq, axis=1)
 
-    nt_freq = pd.DataFrame()
+    nt_freq = pd.DataFrame(index=['A', 'C', 'G', 'T'])
     for i in range(up+down):
         c = seqs.str[i].value_counts(normalize=True)
-        nt_freq[i] = c
+        c.name = i
+        nt_freq = nt_freq.join(c)
 
     # replace frequency of missing bases with 0.001 to prevent NaNs in frequency scores
     nt_freq = nt_freq.replace({np.nan:0.001})
@@ -48,6 +50,7 @@ def calculate_gRNA_nt_freqs(minicircles, gRNAs, feature, up, down):
 def get_gRNA_peaks(mO_gRNA_scores, num_cassettes, up):
     # determine the minimum score for probable peaks in gRNA scores
     gRNA_peaks = {'mO_name':[], 'score':[], 'position':[]}
+    
     # get all peak scores for each 
     for _, mO in mO_gRNA_scores.iterrows():
         # identify the position and value of all peaks along a minicircle

@@ -309,7 +309,7 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
         # out.append(''.join(['A' if i == 1 or i == 4 else 'I' if i == 2 else 'U' if i == 3 else '-' for i in mRNA_record['anchor']]))
         # out.append(''.join([str(int(i)) for i in mRNA_record['anchor_count']]))
         out.append(''.join(['M' if (k == 'u' or j != '-') and i == 0 else '-' for i, j, k in zip(mRNA_record['edited'], mRNA_record['deletions'], mRNA_seq)]))
-        out.append(''.join(a))
+        # out.append(''.join(a))
         out.append(''.join(x))
         out.append(mRNA_record['deletions'])
         out.append(mRNA_seq)
@@ -332,13 +332,10 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 if gRNA['cassette_label'] == 'Maxi':
                     gRNA['cassette_label'] = ''
 
-                # info = [gRNA['name'], str(gRNA['family_no']), f"{a_type[gRNA['anchor_type']]*gRNA['anchor_len']}"]
                 info = []
-                # if gRNA['expression'] == 'expressed':
-                #     info += ['*']
-                info += [gRNA['name'], f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
-                # info += [gRNA['name']]
-                # info += [gRNA['name'], gRNA['family_id']]
+                info += [gRNA['name']]
+                # info += [f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
+                info += [gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]
                 gRNA_header = ' '.join(info)

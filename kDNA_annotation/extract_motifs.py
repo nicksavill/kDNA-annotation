@@ -64,6 +64,7 @@ def main(config_file='config.yaml'):
                 # search for the next motif
                 match = new_meme_regex.search(line)
                 if match:
+                    print('New motif found')
                     motif = line.split()[1]
                     motif_positions.append({'seq':[], motif:[]})
                     motif_nt_freqs[motif] = {'A':[], 'C':[], 'G':[], 'T':[]}
@@ -73,6 +74,7 @@ def main(config_file='config.yaml'):
                 # search for start of motif positions
                 match = position_regex.search(line)
                 if match:
+                    print(' motif positions found')
                     next(f)
                     this_motif = motif_positions[-1]
                     state = 2
@@ -95,6 +97,7 @@ def main(config_file='config.yaml'):
                 # searching for nt frequencies
                 match = nt_freq_regex.search(line)
                 if match:
+                    print(' motif nt frequencies positions found')
                     state = 4
 
             elif state == 4:
@@ -111,6 +114,7 @@ def main(config_file='config.yaml'):
                 # search and record motif regular expression
                 match = regex_regex.search(line)
                 if match:
+                    print(' motif regex found')
                     next(f)
                     motif_regex[motif] = next(f).rstrip()
                     # finished with this motif, start on the next one

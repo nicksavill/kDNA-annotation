@@ -16,11 +16,11 @@ def get_unprocessed_mRNAs(unedited_file, edited_file):
     for mRNA_name, mRNA in sorted(edited.items()):
         print(mRNA_name)
         # convert U's to T's in edited mRNAs
-        edited_seq = str(mRNA.seq).replace('u', 'T').replace('U', 'T')
+        edited_seq = str(mRNA.seq).replace('u', 'T').replace('U', 'T').replace('t', 'T')
 
         # get mRNA name without version number for processing unedited sequences
         u_mRNA_name = mRNA_name.split('_')[0]
-        unedited_seq = str(unedited[u_mRNA_name].seq).replace('u', 'T').replace('U', 'T')
+        unedited_seq = str(unedited[u_mRNA_name].seq).replace('u', 'T').replace('U', 'T').replace('t', 'T')
 
         # Check that the T-stripped edited and unedited sequences exactly match. If not abort
         edited_seq_T_stripped = edited_seq.replace('T', '')
