@@ -228,6 +228,8 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
         gRNAs['gene_mRNA_start'] = gRNAs['gene_mRNA_end'] - gRNAs['gene_length']
         gRNAs['sort_pos'] = gRNAs['gene_mRNA_end']
     else:
+        gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
+        gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
         gRNAs['expression'] = 'unknown'
         gRNAs['sort_pos'] = gRNAs['mRNA_end']
 
@@ -390,12 +392,14 @@ def main(config_file='config.yaml'):
     ########################################### PARAMETERS #########################################
     init_seq_len = config['initiation sequence length']
 
+
     ############################################### LOAD ###########################################
     if config['have transcriptomics']:
         minicircles, mRNAs, CSB1, CSB2, CSB3, cassettes, gRNAs, genes = gzip_pickle_load(features_file)
     else:
         minicircles, mRNAs, CSB1, CSB2, CSB3, cassettes, gRNAs = gzip_pickle_load(features_file)
         genes = None
+
 
     ##################### SAVE GENBANK FILE AND FULL ALIGNMENTS TO #################################
     # submission(minicircles, CSB1, CSB2, CSB3, cassettes, gRNAs, genes, init_seq_len, genbank_dir)
