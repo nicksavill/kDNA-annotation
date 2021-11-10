@@ -181,7 +181,7 @@ The option `allow_orphans` can take three options: `auto` will automatically ide
 
 If transcriptomics is available for identifying expression status and initiation sequences then `have transcriptomics` should be set to "yes". Go to Step 12.
 
-If transcriptomics is not available then the position of the putative initiation site, relative to the 3' end of the forward repeat, is the modal distance (calculated from the HQ gRNAs) between the forward repeat and the initiation sequence motifs as found by Meme in Steps 7 and 8. Anchors are identified and gRNAs are assigned to gRNA families. Human readable text files of all cassettes and canonical gRNAs are output to the `annotation directory` in files `cassettes text file` and `gRNAs text file` respectively. Go to Step 17.
+If transcriptomics is not available then the position of the putative initiation site, relative to the 3' end of the forward repeat, is determined using the nucleotide frequencies of the initiation sequence motifs of HQ gRNAs found by Meme in Steps 7 and 8. Anchors are identified and gRNAs are assigned to gRNA families. Human readable text files of all cassettes and canonical gRNAs are output to the `annotation directory` in files `cassettes text file` and `gRNAs text file` respectively. Go to Step 17.
 
 #### Step 12
 
