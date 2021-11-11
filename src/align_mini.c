@@ -8,6 +8,7 @@
 
 #define MIN(a, b) (a) < (b)? (a): (b)
 #define NMRNA 30
+#define MAX_MINICIRCLES 1024
 
 short **shortmatrix(int sizex, int sizey)
 {
@@ -176,7 +177,7 @@ char* make_filename(char* name1, char* name2, char* name3) {
 int main(int argc, char *argv[]) {
     int i, nm, nmRNA, min_gRNA_length;
     char *mRNA_seq[] = {[0 ... NMRNA] = NULL}, mRNA_name[NMRNA][100];
-    char mO_seq[512][2<<11], mO_name[512][2<<10], *mO_seq_rc;
+    char mO_seq[MAX_MINICIRCLES][2<<11], mO_name[MAX_MINICIRCLES][2<<10], *mO_seq_rc;
     char *buf = malloc(sizeof(char));
     char *project_dir;
     char *work_dir;
@@ -321,6 +322,10 @@ int main(int argc, char *argv[]) {
             if (buf[0] == '>') {
                 // buf[7] = '\0';
                 nm++;
+                if (nm == MAX_MINICIRCLES) {
+                    fprintf(stderr, "too many minicircles, increase MAX_MINICIRCLES\n");
+                    exit(1);
+                }
                 mO_seq[nm][0] = '\0';
                 strcpy(mO_name[nm], buf);
             } else
