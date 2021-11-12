@@ -50,7 +50,7 @@ def get_cassettes(
             rpos = np.argmax(reverse_score[x1:x2]) + x1
 
             # accept as cassette if either repeat score is above min repeat score 
-            # and this cassette des not overlap existing one
+            # and this cassette does not overlap existing one
             if forward_score[fpos] > min_forward_score or reverse_score[rpos] > min_reverse_score:
                 for c in cassettes_pos:
                     if fpos < c[1] and rpos > c[0]:
@@ -99,90 +99,6 @@ def get_cassettes(
     cassettes = pd.DataFrame(cassettes)
     return cassettes.sort_values(['mO_name', 'forward_start']).reset_index(drop=True)
 
-def get_cassettes_old(
-        mO_forward_scores,
-        mO_reverse_scores,
-        gRNA_peaks,
-        min_forward_score,
-        _,
-        min_reverse_score,
-        up,
-        forward_search_min,
-        forward_search_max,
-        reverse_search_min,
-        reverse_search_max,
-        repeat_len,
-        minicircles
-    ):    
-    cassettes = []
-    for _, group in gRNA_peaks.groupby('mO_name'):
-        mO_name = group.iloc[0, 0]
-
-        cassettes_pos = []
-        q_peaks = group[group['quality'] == True]
-        forward_score = mO_forward_scores[mO_name]
-        reverse_score = mO_reverse_scores[mO_name]
-        for _, peak in q_peaks.iterrows():
-            x = peak['position']
-            # calculate search region for forward repeat and find position of max score
-            x1 = max(0, x - up + forward_search_min)
-            x2 = x - up + forward_search_max
-            fpos = np.argmax(forward_score[x1:x2]) + x1
-            # calculate search region for reverse repeat and find position of max score
-            x1 = max(0, x - up + reverse_search_min)
-            x2 = x - up + reverse_search_max
-            rpos = np.argmax(reverse_score[x1:x2]) + x1
-
-            # accept as cassette if either repeat score is above min repeat score 
-            # and this cassette des not overlap existing one
-            if forward_score[fpos] > min_forward_score or reverse_score[rpos] > min_reverse_score:
-                for c in cassettes_pos:
-                    if fpos < c[1] and rpos > c[0]:
-                        break
-                else:
-                    cassettes_pos.append((fpos, rpos))
-
-        # find high scoring repeats not within cassettes that have not yet been associated with a cassette 
-        # find positions of probable repeats
-        f_indexes = np.where(forward_score > min_forward_score)[0]
-        r_indexes = np.where(reverse_score > min_reverse_score)[0]
-        # and remove any that have already been assigned to a cassette
-        for c in cassettes_pos:
-            f_indexes = f_indexes[~((f_indexes >= c[0]) & (f_indexes <= c[1]))]
-            r_indexes = r_indexes[~((r_indexes >= c[0]) & (r_indexes <= c[1]))]
-        # reverse scores at remaining un-associated reverse repeats
-
-        for fpos in f_indexes:
-            # search window for reverse repeat from the position of the forward repeat
-            x1 = fpos+reverse_search_min-forward_search_max
-            x2 = fpos+reverse_search_max-forward_search_min
-            # unassociated reverse repeats within range of forward repeat
-            r_indexes_window = r_indexes[(r_indexes >= x1) & (r_indexes <= x2)]
-
-            if len(r_indexes_window) > 0:
-                idx = np.argmax(reverse_score[r_indexes_window])
-                rpos = r_indexes_window[idx]
-                # ignore if overlapping with an existing cassette
-                for c in cassettes_pos:
-                    if fpos < c[1] and rpos > c[0]:
-                        break
-                else:
-                    cassettes_pos.append((fpos, rpos))
-
-        for c in cassettes_pos:
-            new_c = {}
-            new_c['mO_name'] = mO_name
-            new_c['forward_start'] = c[0]
-            new_c['forward_end'] = c[0]+repeat_len
-            new_c['forward_seq'] = str(minicircles[mO_name].seq)[c[0]:c[0]+repeat_len]
-            new_c['reverse_start'] = c[1]
-            new_c['reverse_end'] = c[1]+repeat_len
-            new_c['reverse_seq'] = str(minicircles[mO_name].seq)[c[1]:c[1]+repeat_len]
-            cassettes.append(new_c)
-
-    cassettes = pd.DataFrame(cassettes)
-    return cassettes.sort_values(['mO_name', 'forward_start']).reset_index(drop=True)
-
 def drop_invalid_cassettes(cassettes, cassettes_to_drop):
     """ remove cassettes in cassettes_to_drop """
     y = cassettes[['mO_name', 'forward_start']].apply(lambda x: list(x) in cassettes_to_drop, axis=1)
@@ -200,10 +116,20 @@ def get_cassette_label(mO_cassettes, cas_labels):
     # loop through cassettes and try to assign a label based on cas_labels
     for forward_start in mO_cassettes:
         # get the first cassette label
-        label = next(label_values)
+        try:
+            label = next(label_values)
+        except StopIteration:
+            print(f'Possible false cassette in {mO_cassettes.name}')
+            print('Add another cassette label to "cassette labels and limits" in config.yaml')
+            exit()
         # search through label positions to find the first that this cassette sits in
         while forward_start > cas_labels[label][1]:
-            label = next(label_values)
+            try:
+                label = next(label_values)
+            except StopIteration:
+                print(f'Possible false cassette in {mO_cassettes.name}')
+                print('Add another cassette label to "cassette labels and limits" in config.yaml')
+                exit()
         # check that the cassette is in the label interval
         if forward_start >= cas_labels[label][0]:
             # if it is assign the label to this cassette

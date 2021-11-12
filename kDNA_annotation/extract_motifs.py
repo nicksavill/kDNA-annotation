@@ -158,34 +158,21 @@ def main(config_file='config.yaml'):
     # if not get user to change upstream and downstream and rerun analysis
     motif_positions['forward repeat'] += left_trim['forward repeat']
     reverse_end = motif_positions['reverse repeat'] + left_trim['reverse repeat'] + repeat_len
-    x = reverse_end.max() -(up+down)
+    x = reverse_end.max() - (up+down)
     if x >= 0:
         print("*** WARNING ***")
         print(f"The 3' end of the reverse repeat has been truncated by up to {x:.0f} nt on some high quality gRNAs.")
         print(f"Increase 'upstream'  by at least {x:.0f} nt in config.yaml, and rerun hq_gRNA.py and meme again.")
 
-    if plot_features:
-        # check that features are where we expect them to be
-        motif_positions['forward end to gRNA'] = up - repeat_len - motif_positions['forward repeat']
-        motif_positions['init to gRNA'] = up - motif_positions['init sequence']
-        motif_positions['forward end to init'] = motif_positions['init sequence'] - motif_positions['forward repeat'] - repeat_len
 
-        fig, axes = plt.subplots(2, 3, figsize=(3*6.4, 2*4.8))
-        axes[0, 0].hist(motif_positions['forward repeat'])
-        axes[0, 1].hist(motif_positions['init sequence'])
-        axes[0, 2].hist(motif_positions['reverse repeat'])
-        axes[1, 0].hist(motif_positions['forward end to init'])
-        axes[1, 1].hist(motif_positions['init to gRNA'])
-        axes[1, 2].hist(motif_positions['forward end to gRNA'])
-
-        axes[0, 0].set_xlabel("Position of 5' end of forward repeat")
-        axes[0, 1].set_xlabel("Position of 5' end of initiation sequence")
-        axes[0, 2].set_xlabel("Position of 5' end of reverse repeat")
-        axes[1, 0].set_xlabel("Distance from 3' end of forward repeat\nto 5' end of initiation sequence")
-        axes[1, 1].set_xlabel("Distance from 5' end of initiation sequence\nto 5' end of HQ gRNA")
-        axes[1, 2].set_xlabel("Distance from 3' end of forward repeat\nto 5' end of HQ gRNA")
-        fig.suptitle('Position of features in sequences upstream and downstream of high quality gRNAs')
-        plt.show()
+    # drop HQ gRNAs whose motif positions are outliers (caused by Orphans, repeated motifs)
+    print(len(motif_positions))
+    for motif, length in lengths.items():
+        median_mid_pos = motif_positions[motif].median() + length // 2
+        mask1 = motif_positions[motif] - length // 2 < median_mid_pos
+        mask2 = median_mid_pos < motif_positions[motif] + length + length // 2
+        motif_positions = motif_positions[mask1 & mask2]
+    print(len(motif_positions))
 
 
     ##################################################### SAVE ###########################################################
@@ -210,3 +197,35 @@ def main(config_file='config.yaml'):
             f.write('\n')
 
     pickle_save([motif_positions, motif_regex, motif_nt_freqs], motifs_pickle_file)
+    dataframe_out(motif_positions, 'motifs.csv')
+
+    
+    ##################################################### PLOT ###########################################################
+
+    def plothist(axes, x):
+        axes.hist(x, bins=range(x.min()-1, x.max()+2))
+
+    if plot_features:
+        # check that features are where we expect them to be
+        motif_positions['forward end to gRNA'] = up - repeat_len - motif_positions['forward repeat']
+        motif_positions['init to gRNA'] = up - motif_positions['init sequence']
+        motif_positions['forward end to init'] = motif_positions['init sequence'] - motif_positions['forward repeat'] - repeat_len
+
+        fig, axes = plt.subplots(2, 3, figsize=(3*6.4, 2*4.8))
+        plothist(axes[0, 0], motif_positions['forward repeat'])
+        plothist(axes[0, 1], motif_positions['init sequence'])
+        plothist(axes[0, 2], motif_positions['reverse repeat'])
+        plothist(axes[1, 0], motif_positions['forward end to init'])
+        plothist(axes[1, 1], motif_positions['init to gRNA'])
+        plothist(axes[1, 2], motif_positions['forward end to gRNA'])
+
+        axes[0, 0].set_xlabel("Position of 5' end of forward repeat")
+        axes[0, 1].set_xlabel("Position of 5' end of initiation sequence")
+        axes[0, 2].set_xlabel("Position of 5' end of reverse repeat")
+        axes[1, 0].set_xlabel("Distance from 3' end of forward repeat\nto 5' end of initiation sequence")
+        axes[1, 1].set_xlabel("Distance from 5' end of initiation sequence\nto 5' end of HQ gRNA")
+        axes[1, 2].set_xlabel("Distance from 3' end of forward repeat\nto 5' end of HQ gRNA")
+        fig.suptitle('Position of features in sequences upstream and downstream of high quality gRNAs')
+        plt.show()
+
+

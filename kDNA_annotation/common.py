@@ -105,8 +105,9 @@ def gzip_pickle_load(file):
         return pickle.load(f)
 
 def dataframe_out(x, file, index=True):
-    with open(file, 'w') as f:
-        f.write(x.to_string(index=index))
+    x.to_csv(file, index=index)
+    # with open(file, 'w') as f:
+    #     f.write(x.to_string(index=index))
     print(f'file {file} written')
 
 def get_sequence(gRNA, up, down, minicircles):
