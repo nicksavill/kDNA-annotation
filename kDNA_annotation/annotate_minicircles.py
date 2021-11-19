@@ -256,7 +256,7 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                     # check if row exists, if not create it
                     if nrows == row:
                         nrows += 1
-                        if nrows > 100:
+                        if nrows > 1000:
                             print(f'Too many rows in edit alignment: {mRNA_name}')
                             exit()
                         rightmost[row] = full_length
