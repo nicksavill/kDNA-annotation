@@ -246,49 +246,53 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
         rightmost = {}
         # go through groups from 3' to 5' end of mRNA 
         # for family_no in sorted(g['family_no'].unique(), reverse=True):
-        for family_no in sorted(g['family_no'].unique(), reverse=True):
-            # all gRNAs in this family_no
-            group_gRNAs = g[g['family_no'] == family_no].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
+        for family_end in sorted(g['family_end'].unique(), reverse=True):
+            # get all gRNAs at this family end
+            g1 = g[g['family_end'] == family_end]
+            # loop through all cassettes of gRNAs with this family end
+            for cl in sorted(g1['cassette_label'].unique()):
+                # all gRNAs in this family
+                group_gRNAs = g1[g1['cassette_label'] == cl].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
 
-            # try putting gRNAs in topmost row first otherwise find row in which gRNA family_no will fit
-            row = 0
-            while True:
-                for _, gRNA in group_gRNAs.iterrows():
-                    # check if row exists, if not create it
-                    if nrows == row:
-                        nrows += 1
-                        if nrows > 1000:
-                            print(f'Too many rows in edit alignment: {mRNA_name}')
-                            exit()
-                        rightmost[row] = full_length
-                    row += 1
-                    if gRNA['expression'] == 'expressed':
-                        if gRNA['gene_mRNA_end'] >= rightmost[row-1]:
-                            break
+                # try putting gRNAs in topmost row first otherwise find row in which gRNA family_no will fit
+                row = 0
+                while True:
+                    for _, gRNA in group_gRNAs.iterrows():
+                        # check if row exists, if not create it
+                        if nrows == row:
+                            nrows += 1
+                            if nrows > 1000:
+                                print(f'Too many rows in edit alignment: {mRNA_name}')
+                                exit()
+                            rightmost[row] = full_length
+                        row += 1
+                        if gRNA['expression'] == 'expressed':
+                            if gRNA['gene_mRNA_end'] >= rightmost[row-1]:
+                                break
+                        else:
+                            if gRNA['mRNA_end'] >= rightmost[row-1]:
+                                break
                     else:
-                        if gRNA['mRNA_end'] >= rightmost[row-1]:
-                            break
-                else:
-                    # all gRNAs fit so update alignments
-                    break
+                        # all gRNAs fit so update alignments
+                        break
 
-            # add gRNAs in this group to rows
-            row -= len(group_gRNAs)
-            for _, gRNA in group_gRNAs.iterrows():
-                if len(alignments) <= row:
-                    alignments.append([])
-                alignments[row].insert(0, gRNA)
-                # get left most filled position in row so that the next group of gRNAs does not overlap
-                # this includes the expressed small RNA 
-                if gRNA['expression'] == 'expressed' and gRNA['gene_length'] is not pd.NA:
-                    try:
-                        rightmost[row] = min(gRNA['gene_mRNA_end']-gRNA['gene_length'], gRNA['mRNA_end']-gRNA['length'])
-                    except TypeError:
-                        print(gRNA)
-                        exit()
-                else:
-                    rightmost[row] = gRNA['mRNA_end']-gRNA['length']
-                row += 1
+                # add gRNAs in this group to rows
+                row -= len(group_gRNAs)
+                for _, gRNA in group_gRNAs.iterrows():
+                    if len(alignments) <= row:
+                        alignments.append([])
+                    alignments[row].insert(0, gRNA)
+                    # get left most filled position in row so that the next group of gRNAs does not overlap
+                    # this includes the expressed small RNA 
+                    if gRNA['expression'] == 'expressed' and gRNA['gene_length'] is not pd.NA:
+                        try:
+                            rightmost[row] = min(gRNA['gene_mRNA_end']-gRNA['gene_length'], gRNA['mRNA_end']-gRNA['length'])
+                        except TypeError:
+                            print(gRNA)
+                            exit()
+                    else:
+                        rightmost[row] = gRNA['mRNA_end']-gRNA['length']
+                    row += 1
 
         x = ['-' for _ in range(full_length)]
         for row in alignments:
@@ -336,8 +340,8 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                 info = []
                 info += [gRNA['name']]
                 # info += [f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
-                info += [gRNA['strain']]
-                # info += [gRNA['family_id']]
+                # info += [gRNA['strain']]
+                info += [gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]
                 gRNA_header = ' '.join(info)
@@ -359,6 +363,106 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
             out.append(''.join(expression))
 
         with open(f'{alignments_dir}/{mRNA_name}.txt', 'w') as f:
+            outs = '\n'.join(out)
+            f.write(outs)
+
+def output_families(gRNAs, mRNAs, config, alignments_dir):
+
+    if not config['have transcriptomics']:
+        gRNAs['expression'] = 'expressed'
+
+    gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
+    gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
+    gRNAs['gene_mRNA_start'] = gRNAs['gene_mRNA_end'] - gRNAs['gene_length']
+    gRNAs['sort_pos'] = gRNAs['gene_mRNA_end']
+
+    for mRNA_name, mRNA_record in mRNAs.items():
+        mRNA_seq = mRNA_record['seq']
+
+        # pack reads into rows
+        row = 0
+        alignments = [[]]
+        # allow gRNAs to extend past the 3' end of a mRNA (to make small RNAs work)
+        full_length = mRNA_record['length']+10
+
+        # all gRNAs that edit this mRNA
+        g = gRNAs.query('mRNA_name == @mRNA_name')
+
+        nrows = 0
+        rightmost = {}
+        # go through groups from 3' to 5' end of mRNA 
+        for family_end in sorted(g['family_end'].unique(), reverse=True):
+            # get all gRNAs at this family end
+            g1 = g[g['family_end'] == family_end]
+            # loop through all cassettes of gRNAs with this family end
+            for cl in sorted(g1['cassette_label'].unique()):
+                # all gRNAs in this family
+                group_gRNAs = g1[g1['cassette_label'] == cl].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
+
+                family_start = group_gRNAs['mRNA_start'].min()
+                # try putting gRNAs in topmost row first otherwise find row in which gRNA family will fit
+                row = 0
+                while True:
+                    # check if row exists, if not create it
+                    if nrows == row:
+                        nrows += 1
+                        if nrows > 1000:
+                            print(f'Too many rows in edit alignment: {mRNA_name}')
+                            exit()
+                        rightmost[row] = full_length
+                    row += 1
+                    # print(family_end, rightmost[row-1])
+                    if family_end < rightmost[row-1]:
+                        break
+                # row += 1
+
+                # if nrows == row:
+                #     nrows += 1
+                #     if nrows > 1000:
+                #         print(f'Too many rows in edit alignment: {mRNA_name}')
+                #         exit()
+                #     rightmost[row] = 0
+                # row += 1
+
+                # add gRNAs in this group to rows
+                row -= 1
+                if len(alignments) <= row:
+                    alignments.append([])
+                alignments[row].insert(0, (family_start, family_end, group_gRNAs.iloc[0]['family_id']))
+                # get left most filled position in row so that the next group of gRNAs does not overlap
+                # this includes the expressed small RNA 
+                rightmost[row] = family_start
+                row += 1
+
+        out = []
+        j = 1000
+        out.append(''.join([str((i//j)%10) if i%j == 0 else ' ' for i in range(1, len(mRNA_seq)+1)]))
+        for j in [100, 10, 1]:
+            out.append(''.join([str((i//j)%10) if i%(1 if j == 1 else 10) == 0 else ' ' for i in range(1, len(mRNA_seq)+1)]))
+        out.append(''.join(['M' if (k == 'u' or j != '-') and i == 0 else '-' for i, j, k in zip(mRNA_record['edited'], mRNA_record['deletions'], mRNA_seq)]))
+        out.append(mRNA_record['deletions'])
+        out.append(mRNA_seq)
+        out.append(' '*mRNA_record['orf']+''.join([f'{i}  ' for i in mRNA_record['translate']]))
+        for row in alignments:
+            gRNA_name_align = [' ' for _ in range(full_length)]
+            expression      = [' ' for _ in range(full_length)]
+            for i in range(0, full_length, 10):
+                gRNA_name_align[i] = '.'
+            for gRNA in row:
+                # find position of gRNA alignment to mRNA
+                start = gRNA[0]
+                end   = gRNA[1]
+
+                info = []
+                info += [gRNA[2]]
+                gRNA_header = ' '.join(info)
+                gRNA_name_align[end-len(gRNA_header):end] = list(gRNA_header)
+                expression[start:end] = ['-']*(end-start)
+
+            out.append(''.join(gRNA_name_align))
+            out.append(''.join(expression))
+
+        with open(f'{alignments_dir}/{mRNA_name}_families.txt', 'w') as f:
             outs = '\n'.join(out)
             f.write(outs)
 

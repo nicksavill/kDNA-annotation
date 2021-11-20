@@ -361,8 +361,7 @@ def identify_gRNA_families_old(gRNAs, mRNAs, init_seq_len):
 
 def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
     """ assign gRNAs to gRNA families """
-    gRNA_families = {'family_no':[], 'family_end':[], 'family_id':[]}
-    strand_name = {'coding':'', 'template':'t'}
+    gRNA_families = {'family_end':[], 'family_id':[]}
     index = []
 
     # set rel_pos to 0 for orphans
@@ -373,35 +372,28 @@ def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
         # get all gRNAs with an for this mRNA
         g = gRNAs[gRNAs['mRNA_name'] == mRNA_name]
 
-        for c in gRNAs['cassette_label'].unique():
-            # positions where the start of gRNAs align to mRNA + init_seq_len nt upstream of this position
+        for c in g['cassette_label'].unique():
             a = np.zeros(mRNA['length']+10)
             # indicies of end positions of gRNAs with cassette label "c" aligned to mRNAs
             i = np.array(g[g['cassette_label'] == c]['exp_mRNA_end']-1, dtype=int)
             a[i] = 1            
             a = ''.join([str(int(i)) for i in a])
 
-            # family_no = 0
-
             # find regions where groups of gRNAs anchor to same region of mRNA starting from 5' end of mRNA
+            # allow a gap of up to 2nt between gRNAs in the same family
             for m in re.finditer('(1+0{0,2})+', a):
                 s, e = m.start(0), m.end(0)
                 # the group of gRNAs encoded in the same cassette label and anchor to the same region of the mRNA
-                family = g[(g['exp_mRNA_end'] >= s) & (g['exp_mRNA_end'] <= e)]
+                family = g[(g['exp_mRNA_end'] >= s) & (g['exp_mRNA_end'] <= e) & (g['cassette_label'] == c)]
 
                 if len(family) > 0:
                     end = family['exp_mRNA_end'].max()
                     index.extend(family.index.values)
-                    # gRNA_families['family_no'].extend([family_no]*len(family))
                     gRNA_families['family_end'].extend([end]*len(family))
                     gRNA_families['family_id'].extend([f'{mRNA_name}-{c}-{int(end)}']*len(family))
-                    # family_no += 1
 
-    families = pd.DataFrame(gRNA_families, index=index)
-    families = families.sort_values('family_end')
-    families['family_no'] = range()
     gRNAs = gRNAs.drop(['exp_mRNA_end'], axis=1)
-    return gRNAs.join(families)
+    return gRNAs.join(pd.DataFrame(gRNA_families, index=index))
 
 def cassette_type(gRNAs, cassettes):
     """
