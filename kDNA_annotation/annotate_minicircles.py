@@ -411,18 +411,8 @@ def output_families(gRNAs, mRNAs, config, alignments_dir):
                             exit()
                         rightmost[row] = full_length
                     row += 1
-                    # print(family_end, rightmost[row-1])
                     if family_end < rightmost[row-1]:
                         break
-                # row += 1
-
-                # if nrows == row:
-                #     nrows += 1
-                #     if nrows > 1000:
-                #         print(f'Too many rows in edit alignment: {mRNA_name}')
-                #         exit()
-                #     rightmost[row] = 0
-                # row += 1
 
                 # add gRNAs in this group to rows
                 row -= 1
