@@ -359,7 +359,7 @@ def identify_gRNA_families_old(gRNAs, mRNAs, init_seq_len):
     gRNAs = gRNAs.drop(['tmp', 'exp_mRNA_end'], axis=1)
     return gRNAs.join(pd.DataFrame(gRNA_families, index=index))
 
-def identify_gRNA_families(gRNAs, mRNAs, init_seq_len):
+def identify_gRNA_families(gRNAs, mRNAs):
     """ assign gRNAs to gRNA families """
     gRNA_families = {'family_end':[], 'family_id':[]}
     index = []
