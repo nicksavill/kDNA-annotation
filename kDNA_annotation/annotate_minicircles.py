@@ -245,6 +245,7 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
         nrows = 0
         rightmost = {}
         # go through groups from 3' to 5' end of mRNA 
+        # for family_no in sorted(g['family_no'].unique(), reverse=True):
         for family_no in sorted(g['family_no'].unique(), reverse=True):
             # all gRNAs in this family_no
             group_gRNAs = g[g['family_no'] == family_no].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
@@ -333,10 +334,10 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                     gRNA['cassette_label'] = ''
 
                 info = []
-                # info += [gRNA['name']]
+                info += [gRNA['name']]
                 # info += [f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
                 info += [gRNA['strain']]
-                info += [gRNA['family_id']]
+                # info += [gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]
                 gRNA_header = ' '.join(info)
