@@ -522,7 +522,7 @@ def main(config_file='config.yaml'):
         gRNAs = gRNAs.join(gRNAs.apply(get_gene_start, args=(cassettes, minicircles, init_seq_nt_freqs, init_seq_len, init_site_range), axis=1))
         gRNAs['rel_pos'] = gRNAs['rel_start'] - gRNAs['gene_rel_start']        
         # gRNA families 
-        gRNAs = identify_gRNA_families(gRNAs, mRNAs, init_seq_len)
+        gRNAs = identify_gRNA_families(gRNAs, mRNAs)
         # determine type of gRNA (canonical or non-canonical) in each cassette
         cassettes = cassette_type(gRNAs, cassettes)
 
