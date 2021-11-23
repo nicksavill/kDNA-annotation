@@ -367,15 +367,16 @@ def identify_gRNA_families(gRNAs, mRNAs):
     # set rel_pos to 0 for orphans
     gRNAs['exp_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos'].apply(lambda x: 0 if x is pd.NA else x)
     gRNAs['exp_mRNA_end'] = gRNAs['exp_mRNA_end'].astype('Int32')
+    gRNAs['cas_strand'] = gRNAs['cassette_label'] + gRNAs['strand'].apply(lambda x: 'a' if x == 'template' else '')
 
     for mRNA_name, mRNA in sorted(mRNAs.items()):
         # get all gRNAs with an for this mRNA
         g = gRNAs[gRNAs['mRNA_name'] == mRNA_name]
 
-        for c in g['cassette_label'].unique():
+        for c in g['cas_strand'].unique():
             a = np.zeros(mRNA['length']+10)
             # indicies of end positions of gRNAs with cassette label "c" aligned to mRNAs
-            i = np.array(g[g['cassette_label'] == c]['exp_mRNA_end']-1, dtype=int)
+            i = np.array(g[g['cas_strand'] == c]['exp_mRNA_end']-1, dtype=int)
             a[i] = 1            
             a = ''.join([str(int(i)) for i in a])
 
@@ -384,7 +385,7 @@ def identify_gRNA_families(gRNAs, mRNAs):
             for m in re.finditer('(1+0{0,2})+', a):
                 s, e = m.start(0), m.end(0)
                 # the group of gRNAs encoded in the same cassette label and anchor to the same region of the mRNA
-                family = g[(g['exp_mRNA_end'] >= s) & (g['exp_mRNA_end'] <= e) & (g['cassette_label'] == c)]
+                family = g[(g['exp_mRNA_end'] >= s) & (g['exp_mRNA_end'] <= e) & (g['cas_strand'] == c)]
 
                 if len(family) > 0:
                     end = family['exp_mRNA_end'].max()
@@ -392,7 +393,7 @@ def identify_gRNA_families(gRNAs, mRNAs):
                     gRNA_families['family_end'].extend([end]*len(family))
                     gRNA_families['family_id'].extend([f'{mRNA_name}-{c}-{int(end)}']*len(family))
 
-    gRNAs = gRNAs.drop(['exp_mRNA_end'], axis=1)
+    gRNAs = gRNAs.drop(['exp_mRNA_end', 'cas_strand'], axis=1)
     return gRNAs.join(pd.DataFrame(gRNA_families, index=index))
 
 def cassette_type(gRNAs, cassettes):
