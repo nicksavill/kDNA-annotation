@@ -338,9 +338,11 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
                     gRNA['cassette_label'] = ''
 
                 info = []
-                info += [gRNA['name']]
+                # info += [gRNA['name']]
+                info += [f"{gRNA['mO_name']}({gRNA['cassette_label']+'a' if gRNA['strand'] == 'template' else gRNA['cassette_label']})"]
                 # info += [f"{a_type[gRNA['anchor_type']]*int(gRNA['anchor_len'])}"]
-                # info += [gRNA['strain']]
+                if 'strain' in gRNA:
+                    info += [gRNA['strain']]
                 info += [gRNA['family_id']]
                 # info += [gRNA['name'], str(int(gRNA['family_no'])), str(gRNA['mRNA_end'])]
                 # info += [gRNA['name'], str(gRNA['init_pos'])]

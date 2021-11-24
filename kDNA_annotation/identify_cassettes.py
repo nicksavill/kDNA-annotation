@@ -121,7 +121,7 @@ def get_cassette_label(mO_cassettes, cas_labels):
         except StopIteration:
             print(f'Possible false cassette in {mO_cassettes.name}')
             print('Add another cassette label to "cassette labels and limits" in config.yaml')
-            exit()
+            return None
         # search through label positions to find the first that this cassette sits in
         while forward_start > cas_labels[label][1]:
             try:
@@ -129,7 +129,7 @@ def get_cassette_label(mO_cassettes, cas_labels):
             except StopIteration:
                 print(f'Possible false cassette in {mO_cassettes.name}')
                 print('Add another cassette label to "cassette labels and limits" in config.yaml')
-                exit()
+                return None
         # check that the cassette is in the label interval
         if forward_start >= cas_labels[label][0]:
             # if it is assign the label to this cassette
