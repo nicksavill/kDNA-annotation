@@ -366,11 +366,9 @@ def output_edits(gRNAs, mRNAs, config, alignments_dir):
             outs = '\n'.join(out)
             f.write(outs)
 
-def output_families(gRNAs, mRNAs, config, alignments_dir):
-
-    if not config['have transcriptomics']:
-        gRNAs['expression'] = 'expressed'
-
+def output_families(gRNAs, mRNAs, strains, alignments_dir):
+    """output families aligned to mRNA"""
+    
     gRNAs['gene_length'] = gRNAs['gene_rel_end']-gRNAs['gene_rel_start']
     gRNAs['gene_mRNA_end'] = gRNAs['mRNA_end']+gRNAs['rel_pos']
     gRNAs['gene_mRNA_start'] = gRNAs['gene_mRNA_end'] - gRNAs['gene_length']
@@ -379,10 +377,9 @@ def output_families(gRNAs, mRNAs, config, alignments_dir):
     for mRNA_name, mRNA_record in mRNAs.items():
         mRNA_seq = mRNA_record['seq']
 
-        # pack reads into rows
         row = 0
         alignments = [[]]
-        # allow gRNAs to extend past the 3' end of a mRNA (to make small RNAs work)
+        # allow families to extend past the 3' end of a mRNA
         full_length = mRNA_record['length']+10
 
         # all gRNAs that edit this mRNA
@@ -397,10 +394,10 @@ def output_families(gRNAs, mRNAs, config, alignments_dir):
             # loop through all cassettes of gRNAs with this family end
             for cl in sorted(g1['cassette_label'].unique()):
                 # all gRNAs in this family
-                group_gRNAs = g1[g1['cassette_label'] == cl].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
+                family_gRNAs = g1[g1['cassette_label'] == cl].sort_values(['sort_pos', 'mRNA_end'], ascending=[False, False])
+                family_start = family_gRNAs['mRNA_start'].min()
 
-                family_start = group_gRNAs['mRNA_start'].min()
-                # try putting gRNAs in topmost row first otherwise find row in which gRNA family will fit
+                # try putting families in topmost row first otherwise find row in which gRNA family will fit
                 row = 0
                 while True:
                     # check if row exists, if not create it
@@ -414,11 +411,15 @@ def output_families(gRNAs, mRNAs, config, alignments_dir):
                     if family_end < rightmost[row-1]:
                         break
 
-                # add gRNAs in this group to rows
+                # add family to row
                 row -= 1
                 if len(alignments) <= row:
                     alignments.append([])
-                alignments[row].insert(0, (family_start, family_end, group_gRNAs.iloc[0]['family_id']))
+                alignments[row].insert(0, (family_start, 
+                                           family_end, 
+                                           family_gRNAs.iloc[0]['family_id'], 
+                                           family_gRNAs['mismatches'].min(),
+                                           family_gRNAs['strain'].unique() ))
                 # get left most filled position in row so that the next group of gRNAs does not overlap
                 # this includes the expressed small RNA 
                 rightmost[row] = family_start
@@ -436,15 +437,21 @@ def output_families(gRNAs, mRNAs, config, alignments_dir):
         for row in alignments:
             gRNA_name_align = [' ' for _ in range(full_length)]
             expression      = [' ' for _ in range(full_length)]
-            for i in range(0, full_length, 10):
-                gRNA_name_align[i] = '.'
+            # for i in range(0, full_length, 10):
+            #     gRNA_name_align[i] = '.'
             for gRNA in row:
                 # find position of gRNA alignment to mRNA
                 start = gRNA[0]
-                end   = gRNA[1]
+                end = gRNA[1]
+                family_id = gRNA[2]
+                mm = gRNA[3]
+                s = ''.join([str(i+1) if j in gRNA[4] else '-' for i, j in enumerate(strains) ])
+                
 
                 info = []
-                info += [gRNA[2]]
+                info += [s]
+                info += [str(mm)]
+                info += [family_id]
                 gRNA_header = ' '.join(info)
                 gRNA_name_align[end-len(gRNA_header):end] = list(gRNA_header)
                 expression[start:end] = ['-']*(end-start)
