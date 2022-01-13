@@ -420,7 +420,7 @@ def output_families(gRNAs, mRNAs, strains, alignments_dir):
                 alignments[row].insert(0, (family_start, 
                                            family_end, 
                                            family_gRNAs.iloc[0]['family_id'], 
-                                           family_gRNAs['mismatches'].min(),
+                                           family_gRNAs.groupby('strain')['mismatches'].min(),
                                            family_gRNAs['strain'].unique() ))
                 # get left most filled position in row so that the next group of gRNAs does not overlap
                 # this includes the expressed small RNA 
@@ -446,13 +446,12 @@ def output_families(gRNAs, mRNAs, strains, alignments_dir):
                 start = gRNA[0]
                 end = gRNA[1]
                 family_id = gRNA[2]
-                mm = gRNA[3]
+                mm = ''.join([str(gRNA[3][j]) if j in gRNA[3] else '-' for j in strains])
                 s = ''.join([str(i+1) if j in gRNA[4] else '-' for i, j in enumerate(strains) ])
-                
 
                 info = []
                 info += [s]
-                info += [str(mm)]
+                info += [mm]
                 info += [family_id]
                 gRNA_header = ' '.join(info)
                 gRNA_name_align[end-len(gRNA_header):end] = list(gRNA_header)
