@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import binom
+from statsmodels.stats.multitest import multipletests
 
 from .common import *
 
@@ -38,14 +39,13 @@ def predict_expression(transcripts, init_site_range, p):
     transcripts_init_site = transcripts[mask1 & mask2 | ~mask1]
     c['transcripts_init_site'] = transcripts_init_site.groupby(index)['rel_pos'].count()
     # set transcript count to 0 in cassettes without transcripts
-    c['transcripts_init_site'].replace({np.nan:'0'}, inplace=True)
-    c['transcripts_init_site'] = c['transcripts_init_site'].astype(int)
+    c['transcripts_init_site'] = c['transcripts_init_site'].replace({np.nan:'0'}).astype(int)
 
     # probability of observed number of transcripts starting in initiation site by random chance
-    c['p-value'] = 1-binom.cdf(c['transcripts_init_site'], c['transcripts_total'], p)+binom.pmf(c['transcripts_init_site'], c['transcripts_total'], p)
-    # predicted expression status bonferroni corrected by number of cassettes tested
-    n = len(c.query('strand == "coding"'))
-    c['expression'] = c['p-value'].apply(lambda x: 'expressed' if x < 0.05/n else 'non-expressed')
+    p_value = 1-binom.cdf(c['transcripts_init_site'], c['transcripts_total'], p)+binom.pmf(c['transcripts_init_site'], c['transcripts_total'], p)
+
+    # expression status using Holm-Sidak method for multiple tests
+    c['expression'] = pd.Series(multipletests(p_value)[0], index=c.index).apply(lambda x: 'expressed' if x else 'non-expressed')
 
     # set expression to "outside" for any gRNAs whose initiation sequence is not in the initiation site
     # get position of mode and number of counts in mode (this is used for any gRNAs whose 
@@ -54,7 +54,7 @@ def predict_expression(transcripts, init_site_range, p):
     # y = (c.index.get_level_values('strand') == 'coding') & (c['expression'] == "non-expressed") & ((c['mode_pos'] == 27) | (c['mode_pos'] == 33)) & (c['mode_count'] > 100)
     # c.loc[y, 'expression'] = 'outside' 
 
-    return c[['transcripts_total', 'transcripts_init_site', 'p-value', 'expression']]
+    return c[['transcripts_total', 'transcripts_init_site', 'expression']]
 
 def expression(transcripts, init_site_range, init_seq_len, end_pos_percentile, p):
     def init_and_end(transcripts):
