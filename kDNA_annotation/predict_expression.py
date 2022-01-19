@@ -136,6 +136,7 @@ def main(config_file='config.yaml'):
     transcripts_file       = f"{work_dir}/{config['transcripts pickle file']}"
     expression_pickle_file = f"{work_dir}/{config['expression pickle file']}"
     expression_text_file   = f"{work_dir}/{config['expression text file']}"
+    expression_csv_file   = f"{work_dir}/{config['expression csv file']}"
 
 
     ########################################## PARAMETERS #########################################
@@ -159,3 +160,4 @@ def main(config_file='config.yaml'):
     # cassettes without any transcripts will not be in this file
     pickle_save(genes, expression_pickle_file)
     dataframe_out(genes, expression_text_file)
+    genes.to_csv(expression_csv_file)
