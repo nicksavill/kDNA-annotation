@@ -213,7 +213,7 @@ def get_expressed_genes(gRNAs, cassettes, mRNAs, minicircles, expression):
     genes = genes.rename(columns={'mRNA_end_x':'mRNA_end', 'circle_start_x':'circle_start'})
 
     # set length and type of gene
-    genes['length'] = genes['gRNA_seq'].str.len()
+    genes['length'] = genes['rel_end'] - genes['rel_start']
     genes['type'] = genes['mRNA_name'].apply(lambda x: 'canonical' if isinstance(x, str) else 'non-canonical')
     for c in [ 'circle_start','circle_end', 'length', 'mRNA_start', 'mRNA_end']:
         genes[c] = genes[c].round().astype('Int64')
